@@ -1,0 +1,24 @@
+<%- include('partials/header') %>
+
+<div class="wrap" style="max-width:480px;">
+  <div class="eyebrow">Раздел «Кражи»</div>
+  <h1 style="font-size:1.7rem;">Сообщение админу</h1>
+  <p style="color:var(--muted); margin-bottom:22px;">Прикрепите скриншот/фото и, при желании, комментарий. Сообщение увидит только администратор.</p>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+
+  <form class="stack" method="POST" action="/kraj/send" enctype="multipart/form-data">
+    <div class="field">
+      <label>Изображение</label>
+      <input type="file" name="image" accept="image/*" required>
+    </div>
+    <div class="field">
+      <label>Комментарий (необязательно)</label>
+      <textarea name="comment" maxlength="500" placeholder="Что случилось?"></textarea>
+    </div>
+    <button class="btn btn-solid" type="submit">Отправить админу</button>
+  </form>
+</div>
+
+<%- include('partials/footer') %>

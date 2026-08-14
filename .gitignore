@@ -1,0 +1,9 @@
+node_modules/
+data/db.json
+data/tmp/
+public/uploads/kraj/*
+public/uploads/news/*
+public/uploads/avatars/*
+!public/uploads/kraj/.gitkeep
+!public/uploads/news/.gitkeep
+!public/uploads/avatars/.gitkeep

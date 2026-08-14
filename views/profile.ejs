@@ -1,0 +1,47 @@
+<%- include('partials/header') %>
+
+<div class="wrap" style="max-width:460px;">
+  <div class="eyebrow">👤 Профиль</div>
+  <h1 class="gradient-text" style="font-size:1.9rem;"><%= currentUser.nickname %></h1>
+  <span class="badge <%= currentUser.role === 'admin' ? 'badge-admin' : 'badge-member' %>">
+    <%= currentUser.role === 'admin' ? 'Администратор' : 'Участник семьи' %>
+  </span>
+
+  <% if (error) { %><div class="alert alert-error" style="margin-top:20px;"><%= error %></div><% } %>
+  <% if (success) { %><div class="alert alert-success" style="margin-top:20px;"><%= success %></div><% } %>
+
+  <div class="card" style="margin-top:22px; display:flex; align-items:center; gap:18px;">
+    <% if (user && user.avatarPath) { %>
+      <img src="<%= user.avatarPath %>" class="avatar-lg" alt="аватар">
+    <% } else { %>
+      <div class="avatar-lg-placeholder"><%= currentUser.nickname.charAt(0).toUpperCase() %></div>
+    <% } %>
+    <form method="POST" action="/profile/avatar" enctype="multipart/form-data" style="flex:1;">
+      <div class="field" style="margin-bottom:10px;">
+        <label>Фото профиля</label>
+        <input type="file" name="avatar" accept="image/*" required>
+      </div>
+      <button class="btn btn-sm btn-solid" type="submit">Загрузить</button>
+      <p class="hint">Фото также появится в разделе «Дни рождения», если ваш ник совпадает с записью.</p>
+    </form>
+  </div>
+
+  <h2 style="font-size:1.1rem; margin-top:30px;">🔒 Сменить пароль</h2>
+  <form class="stack" method="POST" action="/profile/password">
+    <div class="field">
+      <label>Текущий пароль</label>
+      <input type="password" name="currentPassword" required>
+    </div>
+    <div class="field">
+      <label>Новый пароль</label>
+      <input type="password" name="newPassword" required minlength="4">
+    </div>
+    <div class="field">
+      <label>Повторите новый пароль</label>
+      <input type="password" name="newPasswordRepeat" required minlength="4">
+    </div>
+    <button class="btn btn-solid" type="submit">Сохранить</button>
+  </form>
+</div>
+
+<%- include('partials/footer') %>

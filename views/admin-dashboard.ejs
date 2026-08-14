@@ -1,0 +1,41 @@
+<%- include('partials/header') %>
+
+<div class="wrap">
+  <div class="eyebrow">⚙️ Панель управления</div>
+  <h1 class="gradient-text" style="font-size:2.1rem;">Админ-панель семьи</h1>
+
+  <div class="grid grid-3" style="margin-top:24px;">
+    <a href="/admin/users" class="card">
+      <div class="eyebrow">👤 Аккаунты</div>
+      <h2 style="font-size:1.7rem;"><%= usersCount %></h2>
+      <p style="color:var(--muted);">Создание и управление аккаунтами участников</p>
+    </a>
+    <a href="/admin/birthdays" class="card">
+      <div class="eyebrow">🎂 Дни рождения</div>
+      <h2 style="font-size:1.7rem;"><%= birthdaysCount %></h2>
+      <p style="color:var(--muted);">Ручное добавление, фото + импорт Excel/CSV</p>
+    </a>
+    <a href="/kraj" class="card">
+      <div class="eyebrow">🚨 Кражи · новые</div>
+      <h2 style="font-size:1.7rem;"><%= krajNewCount %></h2>
+      <p style="color:var(--muted);">Непросмотренные сообщения от участников</p>
+    </a>
+    <a href="/admin/news" class="card">
+      <div class="eyebrow">📰 Новости</div>
+      <h2 style="font-size:1.7rem;"><%= newsCount %></h2>
+      <p style="color:var(--muted);">Посты из телеграм-канала: текст, фото, видео</p>
+    </a>
+    <a href="/admin/interactives" class="card">
+      <div class="eyebrow">🗳️ Интерактивы</div>
+      <h2 style="font-size:1.7rem;"><%= pollsCount %></h2>
+      <p style="color:var(--muted);">Голосования для участников семьи</p>
+    </a>
+    <a href="/admin/applications" class="card">
+      <div class="eyebrow">✨ Заявки · новые</div>
+      <h2 style="font-size:1.7rem;"><%= applicationsNewCount %></h2>
+      <p style="color:var(--muted);">Заявки на вступление в семью</p>
+    </a>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

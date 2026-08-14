@@ -1,0 +1,23 @@
+<%- include('partials/header') %>
+
+<div class="wrap" style="max-width:420px;">
+  <div class="eyebrow">Вход</div>
+  <h1 class="gradient-text" style="font-size:1.9rem;">Авторизация</h1>
+  <p style="color:var(--muted); margin-bottom:22px;">Аккаунты создаёт только администратор семьи. Если у вас его ещё нет — обратитесь к админу.</p>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+  <form class="stack" method="POST" action="/login">
+    <div class="field">
+      <label>Ник</label>
+      <input type="text" name="nickname" required autofocus>
+    </div>
+    <div class="field">
+      <label>Пароль</label>
+      <input type="password" name="password" required>
+    </div>
+    <button class="btn btn-solid" type="submit">Войти</button>
+  </form>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,54 @@
+<%- include('partials/header') %>
+
+<div class="wrap" style="max-width:760px;">
+  <div class="eyebrow">🗳️ Раздел</div>
+  <h1 class="gradient-text" style="font-size:2.1rem;">Интерактивы и голосования</h1>
+  <p style="color:var(--muted); margin-bottom:30px;">Админ добавляет темы для голосования, а каждый участник семьи может отдать один голос за вариант.</p>
+
+  <% if (!currentUser) { %>
+    <div class="alert" style="background:rgba(139,107,255,0.14); border:1px solid rgba(139,107,255,0.4); color:#cfc4ff;">
+      Чтобы проголосовать — <a href="/login">войдите в свой аккаунт</a>. Результаты видны всем.
+    </div>
+  <% } %>
+
+  <% if (polls.length === 0) { %>
+    <div class="card empty-state"><span class="big-emoji">🗳️</span>Голосований пока нет.</div>
+  <% } %>
+
+  <% polls.forEach(function(p) { %>
+    <% const totalVotes = p.options.reduce((s, o) => s + (o.votes || 0), 0); %>
+    <% const alreadyVoted = currentUser && p.voters && p.voters.includes(userId); %>
+    <div class="card poll-card">
+      <div class="row-actions" style="justify-content:space-between; margin-bottom:10px;">
+        <span class="poll-status" style="color: <%= p.status === 'active' ? 'var(--ok)' : 'var(--muted)' %>;">
+          <%= p.status === 'active' ? '🟢 Активно' : '⚪ Завершено' %>
+        </span>
+        <span style="color:var(--muted); font-size:.78rem;"><%= totalVotes %> голосов</span>
+      </div>
+      <% if (p.image) { %><img src="<%= p.image %>" class="poll-image" alt="изображение голосования"><% } %>
+      <h2 style="font-size:1.2rem; margin-bottom:16px;"><%= p.question %></h2>
+
+      <% p.options.forEach(function(opt, idx) { %>
+        <% const pct = totalVotes ? Math.round((opt.votes || 0) / totalVotes * 100) : 0; %>
+        <div class="poll-option">
+          <div class="bar" style="width:<%= pct %>%;"></div>
+          <div class="content">
+            <span><%= opt.text %> <strong style="color:var(--gold-light); margin-left:6px;"><%= pct %>%</strong></span>
+            <% if (p.status === 'active' && currentUser && !alreadyVoted) { %>
+              <form action="/interactives/<%= p.id %>/vote" method="POST" class="inline-form">
+                <input type="hidden" name="optionIndex" value="<%= idx %>">
+                <button class="vote-btn" type="submit">Голосовать</button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+
+      <% if (alreadyVoted) { %>
+        <p style="color:var(--ok); font-size:.85rem; margin-top:8px;">✔ Вы уже проголосовали</p>
+      <% } %>
+    </div>
+  <% }) %>
+</div>
+
+<%- include('partials/footer') %>

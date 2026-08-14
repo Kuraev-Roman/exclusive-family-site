@@ -1,0 +1,64 @@
+<%- include('partials/header') %>
+
+<div class="wrap">
+  <div class="eyebrow">⚙️ Админ</div>
+  <h1 class="gradient-text" style="font-size:2rem;">Интерактивы — управление</h1>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+
+  <div class="card" style="margin-bottom:30px;">
+    <h2 style="font-size:1.1rem;">Создать голосование</h2>
+    <form class="stack" method="POST" action="/admin/interactives/create" enctype="multipart/form-data" style="max-width:560px;">
+      <div class="field">
+        <label>Вопрос</label>
+        <input type="text" name="question" required placeholder="Какой интерактив сделаем на выходных?">
+      </div>
+      <div class="field">
+        <label>Варианты ответа (каждый с новой строки, минимум 2)</label>
+        <textarea name="options" required placeholder="Пейнтбол&#10;Квиз&#10;Совместный стрим"></textarea>
+      </div>
+      <div class="field">
+        <label>Изображение (необязательно)</label>
+        <input type="file" name="image" accept="image/*">
+      </div>
+      <button class="btn btn-fun" type="submit">🗳️ Создать</button>
+    </form>
+  </div>
+
+  <h2 style="font-size:1.2rem; margin-bottom:16px;">Все голосования</h2>
+  <% polls.forEach(function(p) { %>
+    <% const totalVotes = p.options.reduce((s, o) => s + (o.votes || 0), 0); %>
+    <div class="card poll-card">
+      <div class="row-actions" style="justify-content:space-between; margin-bottom:10px;">
+        <span class="poll-status" style="color: <%= p.status === 'active' ? 'var(--ok)' : 'var(--muted)' %>;">
+          <%= p.status === 'active' ? '🟢 Активно' : '⚪ Завершено' %>
+        </span>
+        <div class="row-actions">
+          <% if (p.status === 'active') { %>
+            <form action="/admin/interactives/<%= p.id %>/close" method="POST" class="inline-form">
+              <button class="btn btn-sm" type="submit">Завершить</button>
+            </form>
+          <% } %>
+          <form action="/admin/interactives/<%= p.id %>/delete" method="POST" class="inline-form" onsubmit="return confirm('Удалить голосование?');">
+            <button class="btn btn-sm btn-danger" type="submit">Удалить</button>
+          </form>
+        </div>
+      </div>
+      <h3 style="font-size:1.05rem;"><%= p.question %></h3>
+      <p style="color:var(--muted); font-size:.82rem;"><%= totalVotes %> голосов всего</p>
+      <% p.options.forEach(function(opt) { %>
+        <% const pct = totalVotes ? Math.round((opt.votes || 0) / totalVotes * 100) : 0; %>
+        <div class="poll-option">
+          <div class="bar" style="width:<%= pct %>%;"></div>
+          <div class="content"><span><%= opt.text %></span><strong style="color:var(--gold-light);"><%= opt.votes || 0 %> (<%= pct %>%)</strong></div>
+        </div>
+      <% }) %>
+    </div>
+  <% }) %>
+  <% if (polls.length === 0) { %>
+    <div class="card empty-state"><span class="big-emoji">🗳️</span>Голосований ещё нет.</div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

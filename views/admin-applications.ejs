@@ -1,0 +1,38 @@
+<%- include('partials/header') %>
+
+<div class="wrap">
+  <div class="eyebrow">⚙️ Админ</div>
+  <h1 class="gradient-text" style="font-size:2rem;">Заявки на вступление</h1>
+
+  <% if (applications.length === 0) { %>
+    <div class="card empty-state"><span class="big-emoji">✨</span>Заявок пока нет.</div>
+  <% } %>
+
+  <div class="grid grid-2">
+    <% applications.forEach(function(a) { %>
+      <div class="card">
+        <div class="row-actions" style="justify-content:space-between; margin-bottom:10px;">
+          <strong>👤 <%= a.nickname %></strong>
+          <span class="badge <%= a.status === 'new' ? 'badge-new' : 'badge-resolved' %>">
+            <%= a.status === 'new' ? 'Новая' : 'Обработана' %>
+          </span>
+        </div>
+        <p style="font-size:.85rem; color:var(--muted); margin-bottom:6px;"><%= new Date(a.createdAt).toLocaleString('ru-RU') %></p>
+        <p><strong>Контакт:</strong> <%= a.contact %></p>
+        <% if (a.message) { %><p style="white-space:pre-wrap; margin-top:8px;"><%= a.message %></p><% } %>
+        <div class="row-actions" style="margin-top:14px;">
+          <% if (a.status === 'new') { %>
+            <form action="/admin/applications/<%= a.id %>/resolve" method="POST" class="inline-form">
+              <button class="btn btn-sm" type="submit">Отметить обработанной</button>
+            </form>
+          <% } %>
+          <form action="/admin/applications/<%= a.id %>/delete" method="POST" class="inline-form" onsubmit="return confirm('Удалить заявку?');">
+            <button class="btn btn-sm btn-danger" type="submit">Удалить</button>
+          </form>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

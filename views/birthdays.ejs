@@ -1,0 +1,57 @@
+<%- include('partials/header') %>
+
+<div class="wrap">
+  <div class="eyebrow">🎂 Раздел</div>
+  <h1 class="gradient-text" style="font-size:2.1rem;">Дни рождения семьи</h1>
+  <p style="color:var(--muted); margin-bottom:30px;">Список формирует администратор — вручную или импортом таблицы Excel/CSV.</p>
+
+  <% if (todaysBirthdays.length) { %>
+    <div class="spotlight">
+      <h2>🎉 Сегодня празднуют!</h2>
+      <div class="spotlight-people">
+        <% todaysBirthdays.forEach(function(b) { %>
+          <div class="spotlight-person">
+            <% if (b.photo) { %>
+              <img src="<%= b.photo %>" class="avatar" alt="<%= b.nickname %>">
+            <% } else { %>
+              <div class="avatar-placeholder"><%= b.nickname.charAt(0).toUpperCase() %></div>
+            <% } %>
+            <span class="name"><%= b.nickname %></span>
+            <span class="cake">🎂</span>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  <% } %>
+
+  <% let hasAny = Object.values(grouped).some(a => a.length); %>
+  <% if (!hasAny) { %>
+    <div class="card empty-state"><span class="big-emoji">🎈</span>Список пока пуст.</div>
+  <% } %>
+
+  <div class="grid grid-2">
+    <% for (let m = 1; m <= 12; m++) { %>
+      <% if (grouped[m].length) { %>
+        <div class="month-block card">
+          <h3>📅 <%= MONTHS[m] %></h3>
+          <table class="bday-table">
+            <thead><tr><th>День</th><th>Ник</th></tr></thead>
+            <tbody>
+              <% grouped[m].forEach(function(b) { %>
+                <tr>
+                  <td><span class="bday-day-badge"><%= b.day %></span></td>
+                  <td style="display:flex; align-items:center;">
+                    <% if (b.photo) { %><img src="<%= b.photo %>" class="mini-avatar"><% } %>
+                    <%= b.nickname %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

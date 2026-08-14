@@ -1,0 +1,64 @@
+<%- include('partials/header') %>
+
+<div class="wrap">
+  <div class="eyebrow">Админ</div>
+  <h1 style="font-size:1.9rem;">Аккаунты участников</h1>
+  <p style="color:var(--muted); margin-bottom:24px;">Только администратор может создавать новые аккаунты. Участник входит под своим ником и может сам сменить пароль в профиле.</p>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <h2 style="font-size:1.1rem;">Новый аккаунт</h2>
+      <form class="stack" method="POST" action="/admin/users/create">
+        <div class="field">
+          <label>Ник</label>
+          <input type="text" name="nickname" required>
+        </div>
+        <div class="field">
+          <label>Пароль</label>
+          <input type="text" name="password" required minlength="4">
+        </div>
+        <div class="field">
+          <label>Роль</label>
+          <select name="role">
+            <option value="member">Участник</option>
+            <option value="admin">Администратор</option>
+          </select>
+        </div>
+        <button class="btn btn-solid" type="submit">Создать</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:1.1rem;">Список (<%= users.length %>)</h2>
+      <table class="bday-table">
+        <thead><tr><th>Ник</th><th>Роль</th><th></th></tr></thead>
+        <tbody>
+        <% users.forEach(function(u) { %>
+          <tr>
+            <td><%= u.nickname %></td>
+            <td><span class="badge <%= u.role === 'admin' ? 'badge-admin' : 'badge-member' %>"><%= u.role === 'admin' ? 'Админ' : 'Участник' %></span></td>
+            <td>
+              <div class="row-actions">
+                <form action="/admin/users/<%= u.id %>/reset-password" method="POST" class="inline-form" style="display:flex; gap:6px;">
+                  <input type="text" name="newPassword" placeholder="новый пароль" style="width:110px; padding:5px 8px; background:var(--black); border:1px solid rgba(212,175,55,.25); border-radius:4px; color:var(--white); font-size:.75rem;">
+                  <button class="btn btn-sm" type="submit">Сбросить</button>
+                </form>
+                <% if (u.nickname !== 'admin') { %>
+                <form action="/admin/users/<%= u.id %>/delete" method="POST" class="inline-form" onsubmit="return confirm('Удалить аккаунт <%= u.nickname %>?');">
+                  <button class="btn btn-sm btn-danger" type="submit">Удалить</button>
+                </form>
+                <% } %>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

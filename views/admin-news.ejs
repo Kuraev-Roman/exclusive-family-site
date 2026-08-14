@@ -1,0 +1,38 @@
+<%- include('partials/header') %>
+
+<div class="wrap">
+  <div class="eyebrow">Админ</div>
+  <h1 style="font-size:1.9rem;">Новости — публикация</h1>
+  <p style="color:var(--muted); margin-bottom:24px;">Копируйте текст и фото из телеграм-канала семьи, вставляйте сюда. Для видео пока вставляйте ссылку (например на YouTube/Telegram) — плеер можно подключить позже.</p>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+
+  <div class="card">
+    <form class="stack" method="POST" action="/admin/news/create" enctype="multipart/form-data" style="max-width:560px;">
+      <div class="field"><label>Текст поста</label><textarea name="text" placeholder="Вставьте текст из телеграм-канала..."></textarea></div>
+      <div class="field"><label>Фото (можно несколько)</label><input type="file" name="images" accept="image/*" multiple></div>
+      <div class="field"><label>Ссылка на видео (необязательно)</label><input type="url" name="videoUrl" placeholder="https://..."></div>
+      <button class="btn btn-solid" type="submit">Опубликовать</button>
+    </form>
+  </div>
+
+  <h2 style="font-size:1.2rem; margin-top:30px;">Опубликованные посты</h2>
+  <% items.forEach(function(n) { %>
+    <div class="card news-post">
+      <div class="row-actions" style="justify-content:space-between;">
+        <div class="meta"><%= new Date(n.createdAt).toLocaleString('ru-RU') %></div>
+        <form action="/admin/news/<%= n.id %>/delete" method="POST" class="inline-form" onsubmit="return confirm('Удалить пост?');">
+          <button class="btn btn-sm btn-danger" type="submit">Удалить</button>
+        </form>
+      </div>
+      <% if (n.text) { %><div class="text"><%= n.text %></div><% } %>
+      <% if (n.images && n.images.length) { %>
+        <div class="news-images"><% n.images.forEach(function(img) { %><img src="<%= img %>"><% }) %></div>
+      <% } %>
+      <% if (n.videoUrl) { %><div class="video-slot">🎬 <%= n.videoUrl %></div><% } %>
+    </div>
+  <% }) %>
+</div>
+
+<%- include('partials/footer') %>

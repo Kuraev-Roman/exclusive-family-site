@@ -1,0 +1,93 @@
+<%- include('partials/header') %>
+
+<section class="hero">
+  <img src="/images/logo.jpg" class="hero-crest" alt="EXCLUSIVE crest">
+  <div class="eyebrow">✨ Семья ✨</div>
+  <h1 class="gradient-text">EXCLUSIVE FAMILY</h1>
+  <div class="divider-crown">♛</div>
+  <p class="lead">Сила. Верность. Честь. Дом для тех, кто в семье не по крови, а по духу.</p>
+  <div class="hero-ctas">
+    <a href="/join" class="btn btn-fun">✨ Вступить в семью</a>
+    <a href="/interactives" class="btn btn-solid">🗳️ Голосования</a>
+  </div>
+</section>
+
+<div class="wrap">
+
+  <% if (todaysBirthdays.length) { %>
+    <div class="spotlight">
+      <h2>🎉 Сегодня празднуют день рождения!</h2>
+      <div class="spotlight-people">
+        <% todaysBirthdays.forEach(function(b) { %>
+          <div class="spotlight-person">
+            <% if (b.photo) { %>
+              <img src="<%= b.photo %>" class="avatar" alt="<%= b.nickname %>">
+            <% } else { %>
+              <div class="avatar-placeholder"><%= b.nickname.charAt(0).toUpperCase() %></div>
+            <% } %>
+            <span class="name"><%= b.nickname %></span>
+            <span class="cake">🎂</span>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  <% } %>
+
+  <% if (activePoll) { %>
+    <div class="card poll-card" style="margin-bottom:30px;">
+      <div class="section-title" style="margin-bottom:14px;">
+        <h2 style="font-size:1.2rem;">🗳️ Активный интерактив</h2>
+        <a href="/interactives" class="btn btn-sm">Все голосования →</a>
+      </div>
+      <p style="font-weight:700; font-size:1.05rem;"><%= activePoll.question %></p>
+      <p style="color:var(--muted); font-size:.85rem;">Голосуй на странице интерактивов — нужен вход в свой аккаунт.</p>
+      <a href="/interactives" class="btn btn-fun btn-sm">Перейти и проголосовать</a>
+    </div>
+  <% } %>
+
+  <div class="grid grid-2">
+    <div>
+      <div class="section-title">
+        <h2>🎂 Ближайшие дни рождения</h2>
+        <a href="/birthdays" class="btn btn-sm">Вся таблица →</a>
+      </div>
+      <% if (upcoming.length === 0) { %>
+        <div class="card empty-state"><span class="big-emoji">🎈</span>Пока пусто — админ ещё не добавил даты.</div>
+      <% } else { %>
+        <% upcoming.forEach(function(b) { %>
+          <div class="upcoming-pill">
+            <span style="display:flex; align-items:center;">
+              <% if (b.photo) { %><img src="<%= b.photo %>" class="mini-avatar"><% } %>
+              <%= b.nickname %>
+            </span>
+            <span class="bday-day-badge"><%= b.day %> <%= MONTHS[b.month].slice(0,3) %></span>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+
+    <div>
+      <div class="section-title">
+        <h2>📰 Последние новости семьи</h2>
+        <a href="/news" class="btn btn-sm">Все новости →</a>
+      </div>
+      <% if (news.length === 0) { %>
+        <div class="card empty-state"><span class="big-emoji">📭</span>Здесь появятся посты с телеграм-канала семьи.</div>
+      <% } else { %>
+        <% news.forEach(function(n) { %>
+          <div class="card news-post">
+            <div class="meta"><%= new Date(n.createdAt).toLocaleString('ru-RU') %></div>
+            <% if (n.text) { %><div class="text"><%= n.text.length > 220 ? n.text.slice(0,220) + '…' : n.text %></div><% } %>
+            <% if (n.images && n.images.length) { %>
+              <div class="news-images">
+                <% n.images.slice(0,3).forEach(function(img) { %><img src="<%= img %>" alt="фото новости"><% }) %>
+              </div>
+            <% } %>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

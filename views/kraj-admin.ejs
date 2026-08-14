@@ -1,0 +1,40 @@
+<%- include('partials/header') %>
+
+<div class="wrap">
+  <div class="eyebrow">Админ · Раздел «Кражи»</div>
+  <h1 style="font-size:1.9rem;">Входящие сообщения</h1>
+
+  <% if (items.length === 0) { %>
+    <div class="card empty-state">Сообщений пока нет.</div>
+  <% } %>
+
+  <div class="grid grid-2">
+    <% items.forEach(function(it) { %>
+      <div class="card kraj-item">
+        <div class="row-actions" style="justify-content:space-between; margin-bottom:8px;">
+          <strong><%= it.fromNickname %></strong>
+          <span class="badge <%= it.status === 'new' ? 'badge-new' : 'badge-resolved' %>">
+            <%= it.status === 'new' ? 'Новое' : 'Рассмотрено' %>
+          </span>
+        </div>
+        <div class="meta" style="color:var(--muted); font-size:.78rem; margin-bottom:8px;">
+          <%= new Date(it.createdAt).toLocaleString('ru-RU') %>
+        </div>
+        <img src="<%= it.imagePath %>" alt="изображение от <%= it.fromNickname %>">
+        <% if (it.comment) { %><p><%= it.comment %></p><% } %>
+        <div class="row-actions">
+          <% if (it.status === 'new') { %>
+            <form action="/kraj/<%= it.id %>/resolve" method="POST" class="inline-form">
+              <button class="btn btn-sm" type="submit">Отметить рассмотренным</button>
+            </form>
+          <% } %>
+          <form action="/kraj/<%= it.id %>/delete" method="POST" class="inline-form" onsubmit="return confirm('Удалить сообщение?');">
+            <button class="btn btn-sm btn-danger" type="submit">Удалить</button>
+          </form>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

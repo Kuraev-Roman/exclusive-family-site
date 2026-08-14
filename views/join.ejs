@@ -1,0 +1,43 @@
+<%- include('partials/header') %>
+
+<div class="wrap" style="max-width:640px;">
+  <div class="eyebrow">✨ Вступление</div>
+  <h1 class="gradient-text" style="font-size:2.1rem;">Хочешь в семью EXCLUSIVE?</h1>
+  <p style="color:var(--muted); margin-bottom:24px;">Аккаунт на сайте выдаёт только админ, но заявку на вступление можно оставить прямо сейчас — регистрация не нужна.</p>
+
+  <div class="card" style="margin-bottom:26px;">
+    <h2 style="font-size:1.1rem;">📋 Условия и критерии вступления</h2>
+    <ul class="criteria-list" style="margin-top:14px;">
+      <li><span class="icon">⭐</span> Ранг/уровень — от <strong>3 звёзд</strong></li>
+      <li><span class="icon">🔥</span> Активность — от <strong>800 очков</strong> в месяц</li>
+      <li><span class="icon">💰</span> Пожертвование в общий фонд семьи — от <strong>800</strong> при вступлении</li>
+      <li><span class="icon">🤝</span> Уважение к участникам, без конфликтов и токсичности</li>
+      <li><span class="icon">🎤</span> Готовность быть на связи в общем чате/войсе семьи</li>
+    </ul>
+    <p style="color:var(--muted); font-size:.82rem; margin-top:14px;">Условия могут уточняться админом индивидуально — это ориентир, а не жёсткий фильтр.</p>
+  </div>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <% if (success) { %><div class="alert alert-success">🎉 <%= success %></div><% } %>
+
+  <div class="card">
+    <h2 style="font-size:1.1rem; margin-bottom:6px;">Заявка на вступление</h2>
+    <form class="stack" method="POST" action="/join">
+      <div class="field">
+        <label>Твой ник</label>
+        <input type="text" name="nickname" required>
+      </div>
+      <div class="field">
+        <label>Контакт для связи (телеграм)</label>
+        <input type="text" name="contact" placeholder="@username" required>
+      </div>
+      <div class="field">
+        <label>Расскажи о себе (стаж, активность, почему хочешь в семью)</label>
+        <textarea name="message" maxlength="800" placeholder="Например: играю 2 года, ранг 4 звезды, активность 1200..."></textarea>
+      </div>
+      <button class="btn btn-fun" type="submit">✨ Отправить заявку</button>
+    </form>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
