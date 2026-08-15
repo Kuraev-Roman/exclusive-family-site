@@ -1,0 +1,27 @@
+<%- include('partials/header') %>
+
+<div class="wrap">
+  <div class="eyebrow">📸 Раздел</div>
+  <h1 class="gradient-text" style="font-size:2.1rem;">Альбом семьи</h1>
+  <p style="color:var(--muted); margin-bottom:30px;">Фото и видео с наших встреч и активностей — добавляет админ.</p>
+
+  <% if (items.length === 0) { %>
+    <div class="card empty-state"><span class="big-emoji">📸</span>Альбом пока пуст.</div>
+  <% } else { %>
+    <div class="album-grid">
+      <% items.forEach(function(it) { %>
+        <div class="album-item">
+          <% if (it.type === 'video') { %>
+            <video src="<%= it.path %>" controls preload="metadata"></video>
+            <span class="video-badge">🎬 видео</span>
+          <% } else { %>
+            <img src="<%= it.path %>" alt="<%= it.caption || 'фото альбома' %>" loading="lazy">
+          <% } %>
+          <% if (it.caption) { %><div class="caption"><%= it.caption %></div><% } %>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

@@ -40,4 +40,5 @@ app.listen(PORT, () => {
   console.log(`\n=== EXCLUSIVE FAMILY сайт запущен ===`);
   console.log(`Открой в браузере: http://localhost:${PORT}`);
   console.log(`Админ по умолчанию: admin / admin123\n`);
+  require('./utils/telegramBot').start();
 });

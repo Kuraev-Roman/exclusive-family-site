@@ -19,7 +19,8 @@ router.get('/', (req, res) => {
     krajNewCount: db.get('kraj').filter({ status: 'new' }).size().value(),
     newsCount: db.get('news').size().value(),
     pollsCount: db.get('polls').size().value(),
-    applicationsNewCount: db.get('applications').filter({ status: 'new' }).size().value()
+    applicationsNewCount: db.get('applications').filter({ status: 'new' }).size().value(),
+    albumCount: db.get('album').size().value()
   });
 });
 
@@ -313,6 +314,90 @@ router.post('/applications/:id/resolve', (req, res) => {
 router.post('/applications/:id/delete', (req, res) => {
   db.get('applications').remove({ id: Number(req.params.id) }).write();
   res.redirect('/admin/applications');
+});
+
+// ---------- АЛЬБОМ (фото и видео) ----------
+const albumStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, path.join(__dirname, '..', 'public', 'uploads', 'album')),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '';
+    cb(null, `album_${Date.now()}_${Math.round(Math.random() * 1e6)}${ext}`);
+  }
+});
+const albumUpload = multer({
+  storage: albumStorage,
+  limits: { fileSize: 60 * 1024 * 1024 }, // до 60MB — под короткие видео
+  fileFilter: (req, file, cb) => {
+    const ok = file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/');
+    cb(null, ok);
+  }
+});
+
+router.get('/album', (req, res) => {
+  res.render('admin-album', {
+    items: db.get('album').sortBy('createdAt').reverse().value(),
+    error: null, success: null
+  });
+});
+
+router.post('/album/upload', albumUpload.array('files', 10), (req, res) => {
+  const render = (error, success) =>
+    res.render('admin-album', {
+      items: db.get('album').sortBy('createdAt').reverse().value(), error, success
+    });
+
+  if (!req.files || req.files.length === 0) return render('Выберите хотя бы один файл.', null);
+
+  const caption = (req.body.caption || '').trim().slice(0, 300);
+
+  req.files.forEach((f, idx) => {
+    const isVideo = f.mimetype.startsWith('video/');
+    db.get('album').push({
+      id: Date.now() + idx,
+      type: isVideo ? 'video' : 'photo',
+      path: `/uploads/album/${f.filename}`,
+      caption,
+      createdAt: new Date().toISOString()
+    }).write();
+  });
+
+  render(null, `Загружено файлов: ${req.files.length}`);
+});
+
+router.post('/album/:id/delete', (req, res) => {
+  db.get('album').remove({ id: Number(req.params.id) }).write();
+  res.redirect('/admin/album');
+});
+
+// ---------- НАСТРОЙКИ: ССЫЛКИ НА СОЦСЕТИ ----------
+router.get('/settings', (req, res) => {
+  res.render('admin-settings', {
+    socialLinks: db.get('settings.socialLinks').value() || [],
+    error: null, success: null
+  });
+});
+
+router.post('/settings/social/add', (req, res) => {
+  const { label, url } = req.body;
+  const render = (error, success) =>
+    res.render('admin-settings', {
+      socialLinks: db.get('settings.socialLinks').value() || [], error, success
+    });
+
+  if (!label || !url) return render('Укажите название и ссылку.', null);
+
+  db.get('settings.socialLinks').push({
+    id: Date.now(),
+    label: label.trim(),
+    url: url.trim()
+  }).write();
+
+  render(null, 'Ссылка добавлена.');
+});
+
+router.post('/settings/social/:id/delete', (req, res) => {
+  db.get('settings.socialLinks').remove({ id: Number(req.params.id) }).write();
+  res.redirect('/admin/settings');
 });
 
 module.exports = router;

@@ -4,6 +4,8 @@ data/tmp/
 public/uploads/kraj/*
 public/uploads/news/*
 public/uploads/avatars/*
+public/uploads/album/*
 !public/uploads/kraj/.gitkeep
 !public/uploads/news/.gitkeep
 !public/uploads/avatars/.gitkeep
+!public/uploads/album/.gitkeep

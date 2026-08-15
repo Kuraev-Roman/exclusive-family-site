@@ -30,7 +30,10 @@ router.get('/', (req, res) => {
 
   const activePoll = getActivePoll();
 
-  res.render('index', { news, upcoming, todaysBirthdays, activePoll, MONTHS });
+  const jokes = db.get('minions').value();
+  const joke = jokes.length ? jokes[Math.floor(Math.random() * jokes.length)] : null;
+
+  res.render('index', { news, upcoming, todaysBirthdays, activePoll, MONTHS, joke });
 });
 
 router.get('/birthdays', (req, res) => {
@@ -51,6 +54,12 @@ router.get('/news', (req, res) => {
 router.get('/minions', (req, res) => {
   const jokes = db.get('minions').value();
   res.render('minions', { jokes });
+});
+
+// ---------- АЛЬБОМ (фото и видео) ----------
+router.get('/album', (req, res) => {
+  const items = db.get('album').sortBy('createdAt').reverse().value();
+  res.render('album', { items });
 });
 
 // ---------- ИНТЕРАКТИВЫ / ГОЛОСОВАНИЯ ----------

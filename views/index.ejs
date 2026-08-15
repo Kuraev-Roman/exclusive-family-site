@@ -14,6 +14,13 @@
 
 <div class="wrap">
 
+  <% if (joke) { %>
+    <div class="joke-widget">
+      <span class="banana">🍌</span>
+      <p><%= joke.text %></p>
+    </div>
+  <% } %>
+
   <% if (todaysBirthdays.length) { %>
     <div class="spotlight">
       <h2>🎉 Сегодня празднуют день рождения!</h2>

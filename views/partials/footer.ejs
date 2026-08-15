@@ -1,6 +1,13 @@
   </main>
   <footer class="site-footer">
     <span class="eyebrow">✨ Strength · Loyalty · Honor ✨</span>
+    <% if (settings.socialLinks && settings.socialLinks.length) { %>
+      <div class="footer-social">
+        <% settings.socialLinks.forEach(function(s) { %>
+          <a href="<%= s.url %>" target="_blank" rel="noopener"><%= s.label %></a>
+        <% }) %>
+      </div>
+    <% } %>
     &copy; <%= new Date().getFullYear() %> EXCLUSIVE FAMILY
   </footer>
   <script src="/js/particles.js"></script>
