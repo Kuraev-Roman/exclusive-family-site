@@ -1,8 +1,8 @@
 <%- include('partials/header') %>
 
 <div class="wrap">
-  <div class="eyebrow">Админ</div>
-  <h1 style="font-size:1.9rem;">Аккаунты участников</h1>
+  <div class="eyebrow">⚙️ Админ</div>
+  <h1 class="gradient-text" style="font-size:2rem;">Аккаунты участников</h1>
   <p style="color:var(--muted); margin-bottom:24px;">Только администратор может создавать новые аккаунты. Участник входит под своим ником и может сам сменить пароль в профиле.</p>
 
   <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
@@ -38,17 +38,17 @@
         <tbody>
         <% users.forEach(function(u) { %>
           <tr>
-            <td><%= u.nickname %></td>
-            <td><span class="badge <%= u.role === 'admin' ? 'badge-admin' : 'badge-member' %>"><%= u.role === 'admin' ? 'Админ' : 'Участник' %></span></td>
+            <td data-label="Ник"><%= u.nickname %></td>
+            <td data-label="Роль"><span class="badge <%= u.role === 'admin' ? 'badge-admin' : 'badge-member' %>"><%= u.role === 'admin' ? 'Админ' : 'Участник' %></span></td>
             <td>
-              <div class="row-actions">
+              <div class="row-actions" style="flex-direction:column; align-items:stretch;">
                 <form action="/admin/users/<%= u.id %>/reset-password" method="POST" class="inline-form" style="display:flex; gap:6px;">
-                  <input type="text" name="newPassword" placeholder="новый пароль" style="width:110px; padding:5px 8px; background:var(--black); border:1px solid rgba(212,175,55,.25); border-radius:4px; color:var(--white); font-size:.75rem;">
+                  <input type="text" name="newPassword" placeholder="новый пароль" style="flex:1; min-width:0; padding:5px 8px; background:var(--black); border:1px solid rgba(212,175,55,.25); border-radius:4px; color:var(--white); font-size:.75rem;">
                   <button class="btn btn-sm" type="submit">Сбросить</button>
                 </form>
                 <% if (u.nickname !== 'admin') { %>
                 <form action="/admin/users/<%= u.id %>/delete" method="POST" class="inline-form" onsubmit="return confirm('Удалить аккаунт <%= u.nickname %>?');">
-                  <button class="btn btn-sm btn-danger" type="submit">Удалить</button>
+                  <button class="btn btn-sm btn-danger" type="submit" style="width:100%;">Удалить</button>
                 </form>
                 <% } %>
               </div>

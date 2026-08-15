@@ -36,19 +36,19 @@
       <tbody>
       <% rows.forEach(function(r) { %>
         <tr>
-          <td>
+          <td data-label="Фото">
             <% if (r.photo) { %>
               <img src="<%= r.photo %>" class="mini-avatar">
             <% } else { %>
               <span style="color:var(--muted); font-size:.75rem;">нет фото</span>
             <% } %>
           </td>
-          <td><%= r.nickname %></td>
-          <td><%= r.day %></td>
-          <td><%= r.month %></td>
+          <td data-label="Ник"><%= r.nickname %></td>
+          <td data-label="День"><%= r.day %></td>
+          <td data-label="Месяц"><%= r.month %></td>
           <td>
             <div class="row-actions">
-              <form action="/admin/birthdays/<%= r.id %>/photo" method="POST" enctype="multipart/form-data" class="inline-form" style="display:flex; gap:6px;">
+              <form action="/admin/birthdays/<%= r.id %>/photo" method="POST" enctype="multipart/form-data" class="inline-form" style="display:flex; gap:6px; flex-wrap:wrap;">
                 <input type="file" name="photo" accept="image/*" style="width:130px; font-size:.7rem;">
                 <button class="btn btn-sm" type="submit">Фото</button>
               </form>
