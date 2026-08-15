@@ -1,36 +1,55 @@
 const low = require('lowdb');
+const Memory = require('lowdb/adapters/Memory');
 const FileSync = require('lowdb/adapters/FileSync');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 
-const dbFile = path.join(__dirname, '..', 'data', 'db.json');
-const adapter = new FileSync(dbFile);
-const db = low(adapter);
+// Если задана переменная окружения DATABASE_URL (Neon/Postgres) — данные
+// хранятся там и переживают перезапуски/передеплои. Если её нет — работаем
+// по-старому, в локальном JSON-файле (удобно для разработки на своём ПК).
+const DATABASE_URL = process.env.DATABASE_URL;
+const usePostgres = !!DATABASE_URL;
 
-// Дефолтная структура базы данных
-db.defaults({
-  users: [],
-  birthdays: [],
-  kraj: [],          // сообщения раздела "Кражи" (жалобы/репорты с изображением)
-  news: [],          // новости / посты с телеграм-канала
-  minions: [],       // шутки про миньонов
-  polls: [],         // интерактивы/голосования
-  applications: [],  // заявки на вступление в семью (без регистрации)
-  album: [],         // альбом: фото и видео
-  settings: {
-    siteName: 'EXCLUSIVE FAMILY',
-    tagline: 'Strength · Loyalty · Honor',
-    socialLinks: []  // [{ id, label, url }]
-  }
-}).write();
+let db;
+let pgPool = null;
 
-// Миграция: если settings уже существовали без socialLinks — добавим поле
-if (!db.get('settings.socialLinks').value()) {
-  db.set('settings.socialLinks', []).write();
+if (usePostgres) {
+  db = low(new Memory());
+} else {
+  const dbFile = path.join(__dirname, '..', 'data', 'db.json');
+  db = low(new FileSync(dbFile));
 }
 
-// Создаём админа по умолчанию, если пользователей ещё нет
+// ---------- Дефолты и сидирование (одинаковые для обоих режимов) ----------
+
+function applyDefaultsAndSeed() {
+  db.defaults({
+    users: [],
+    birthdays: [],
+    kraj: [],
+    news: [],
+    minions: [],
+    polls: [],
+    applications: [],
+    album: [],
+    settings: {
+      siteName: 'EXCLUSIVE FAMILY',
+      tagline: 'Strength · Loyalty · Honor',
+      socialLinks: [],
+      telegramOffset: 0
+    }
+  }).write();
+
+  if (!db.get('settings.socialLinks').value()) {
+    db.set('settings.socialLinks', []).write();
+  }
+
+  seedAdmin();
+  seedBirthdays();
+  seedMinions();
+}
+
 function seedAdmin() {
   const users = db.get('users').value();
   if (!users.find(u => u.role === 'admin')) {
@@ -46,7 +65,6 @@ function seedAdmin() {
   }
 }
 
-// Импорт дней рождения из подготовленного JSON (один раз, если таблица пуста)
 function seedBirthdays() {
   const existing = db.get('birthdays').value();
   if (existing.length === 0) {
@@ -79,8 +97,72 @@ function seedMinions() {
   }
 }
 
-seedAdmin();
-seedBirthdays();
-seedMinions();
+// ---------- Режим Postgres (Neon) ----------
 
+let ready;
+
+if (usePostgres) {
+  const { Pool } = require('pg');
+  pgPool = new Pool({
+    connectionString: DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+
+  let replicateTimer = null;
+  const replicateNow = async () => {
+    try {
+      const state = JSON.stringify(db.getState());
+      await pgPool.query(
+        `INSERT INTO app_state (id, data, updated_at) VALUES (1, $1::jsonb, now())
+         ON CONFLICT (id) DO UPDATE SET data = $1::jsonb, updated_at = now()`,
+        [state]
+      );
+    } catch (err) {
+      console.error('>>> Не удалось сохранить данные в Postgres:', err.message);
+    }
+  };
+  const scheduleReplicate = () => {
+    clearTimeout(replicateTimer);
+    replicateTimer = setTimeout(replicateNow, 400);
+  };
+
+  ready = (async () => {
+    try {
+      await pgPool.query(`
+        CREATE TABLE IF NOT EXISTS app_state (
+          id smallint PRIMARY KEY,
+          data jsonb NOT NULL,
+          updated_at timestamptz NOT NULL DEFAULT now()
+        )
+      `);
+
+      const { rows } = await pgPool.query('SELECT data FROM app_state WHERE id = 1');
+      if (rows.length) {
+        db.setState(rows[0].data);
+        console.log('>>> Состояние базы данных загружено из Postgres (Neon)');
+      } else {
+        console.log('>>> В Postgres пока нет данных — создаю начальное состояние');
+      }
+
+      applyDefaultsAndSeed();
+      await replicateNow(); // сразу сохранить (в т.ч. дефолты/сидинг) в Postgres
+
+      // После первого сохранения — каждый .write() автоматически реплицируется
+      const originalWrite = db.write.bind(db);
+      db.write = function (...args) {
+        const result = originalWrite(...args);
+        scheduleReplicate();
+        return result;
+      };
+    } catch (err) {
+      console.error('>>> Ошибка подключения к Postgres — сайт работает во временном режиме (данные НЕ сохраняются между перезапусками):', err.message);
+      applyDefaultsAndSeed();
+    }
+  })();
+} else {
+  applyDefaultsAndSeed();
+  ready = Promise.resolve();
+}
+
+db.ready = ready;
 module.exports = db;

@@ -36,9 +36,13 @@ app.use((req, res) => {
   res.status(404).render('404');
 });
 
-app.listen(PORT, () => {
-  console.log(`\n=== EXCLUSIVE FAMILY сайт запущен ===`);
-  console.log(`Открой в браузере: http://localhost:${PORT}`);
-  console.log(`Админ по умолчанию: admin / admin123\n`);
-  require('./utils/telegramBot').start();
+// Ждём загрузки данных (из Postgres, если настроен) перед стартом сервера,
+// чтобы не отдавать пустые страницы в первую секунду после запуска.
+db.ready.then(() => {
+  app.listen(PORT, () => {
+    console.log(`\n=== EXCLUSIVE FAMILY сайт запущен ===`);
+    console.log(`Открой в браузере: http://localhost:${PORT}`);
+    console.log(`Админ по умолчанию: admin / admin123\n`);
+    require('./utils/telegramBot').start();
+  });
 });
