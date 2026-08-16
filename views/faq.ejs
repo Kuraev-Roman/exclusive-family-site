@@ -1,0 +1,38 @@
+<%- include('partials/header') %>
+
+<div class="wrap" style="max-width:720px;">
+  <div class="eyebrow">❓ Вопросы</div>
+  <h1 class="gradient-text" style="font-size:2.1rem;">Часто задаваемые вопросы</h1>
+  <p style="color:var(--muted); margin-bottom:30px;">Ответы на самые популярные вопросы о семье. Не нашли своего — загляните в раздел «Связь с администрацией».</p>
+
+  <% if (items.length === 0) { %>
+    <div class="card empty-state"><span class="big-emoji">❓</span>Пока здесь пусто.</div>
+  <% } else { %>
+    <div class="faq-list">
+      <% items.forEach(function(f, idx) { %>
+        <div class="faq-item">
+          <button type="button" class="faq-question" data-faq-toggle>
+            <span><%= f.question %></span>
+            <span class="caret">▾</span>
+          </button>
+          <div class="faq-answer"><%= f.answer %></div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <div class="card" style="margin-top:28px; text-align:center;">
+    <p style="color:var(--muted); margin-bottom:12px;">Остались вопросы?</p>
+    <a href="/team" class="btn btn-fun">📮 Задать вопрос администрации</a>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('[data-faq-toggle]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      btn.closest('.faq-item').classList.toggle('open');
+    });
+  });
+</script>
+
+<%- include('partials/footer') %>

@@ -33,7 +33,12 @@ router.post('/login', (req, res) => {
     return res.render('login', { error: 'Неверный ник или пароль.' });
   }
 
-  req.session.user = { id: user.id, nickname: user.nickname, role: user.role };
+  req.session.user = {
+    id: user.id,
+    nickname: user.nickname,
+    role: user.role,
+    portals: user.portals || []
+  };
   res.redirect('/');
 });
 

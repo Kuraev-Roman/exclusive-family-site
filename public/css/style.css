@@ -166,7 +166,60 @@ nav.main-nav a.highlight {
 }
 nav.main-nav a.highlight:hover { filter: brightness(1.12); }
 
+/* --- Выпадающие подменю в навигации --- */
+.nav-item.has-dropdown { position: relative; }
+
+.nav-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 15px;
+  font-family: 'Manrope', sans-serif;
+  font-size: .84rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: var(--white);
+  background: none;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: background .18s, color .18s;
+  white-space: nowrap;
+}
+.nav-toggle:hover { background: rgba(232,191,79,0.14); color: var(--gold-light); }
+.nav-toggle .caret { font-size: .68rem; transition: transform .2s; }
+.nav-item.has-dropdown.open .nav-toggle .caret { transform: rotate(180deg); }
+
+.nav-dropdown {
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 230px;
+  padding: 8px;
+  background: linear-gradient(165deg, #17151d, #1d1b25);
+  border: 1px solid rgba(232,191,79,0.25);
+  border-radius: 12px;
+  box-shadow: 0 14px 34px rgba(0,0,0,0.45);
+}
+.nav-item.has-dropdown.open .nav-dropdown { display: flex; }
+
+.nav-dropdown a {
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: .83rem;
+}
+.nav-dropdown a:hover { background: rgba(232,191,79,0.14); color: var(--gold-light); }
+
 .nav-actions-mobile { display: none; }
+
+@media (min-width: 901px) {
+  .nav-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 50;
+  }
+}
 
 .burger-btn {
   display: none;
@@ -259,6 +312,9 @@ body.nav-locked { overflow: hidden; }
   text-align: center;
   overflow: hidden;
   border-bottom: 1px solid rgba(232,191,79,0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .hero::before {
   content: '';
@@ -492,6 +548,7 @@ form.stack { display: flex; flex-direction: column; gap: 15px; max-width: 440px;
   font-weight: 800;
 }
 .badge-admin { background: linear-gradient(90deg, rgba(232,191,79,0.25), rgba(255,157,61,0.2)); color: var(--gold-light); }
+.badge-deputy { background: rgba(139,107,255,0.2); color: #c9bcff; }
 .badge-member { background: rgba(255,255,255,0.08); color: var(--muted); }
 .badge-new { background: rgba(239,91,82,0.2); color: #f5a49e; }
 .badge-resolved { background: rgba(95,212,137,0.2); color: #a9edbf; }
@@ -726,6 +783,23 @@ form.stack { display: flex; flex-direction: column; gap: 15px; max-width: 440px;
   }
   nav.main-nav a:hover { transform: none; }
 
+  .nav-item.has-dropdown { display: flex; flex-direction: column; }
+  .nav-toggle {
+    justify-content: space-between;
+    width: 100%;
+    padding: 13px 16px;
+    border-radius: 10px;
+    font-size: .95rem;
+  }
+  .nav-dropdown {
+    border: none;
+    box-shadow: none;
+    background: rgba(255,255,255,0.03);
+    margin: 2px 0 6px 10px;
+    padding: 4px;
+  }
+  .nav-dropdown a { padding: 11px 14px; font-size: .88rem; }
+
   .nav-actions-mobile {
     display: flex;
     flex-direction: column;
@@ -812,3 +886,127 @@ table.bday-table td[data-label]::before {
   .news-images { grid-template-columns: 1fr; }
   .header-inner { gap: 10px; }
 }
+
+/* --- Лайтбокс (открытие фото в полный размер) --- */
+.lightbox-trigger { cursor: zoom-in; }
+
+.lightbox-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(4,4,6,0.92);
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+}
+.lightbox-overlay.show { display: flex; }
+.lightbox-overlay img {
+  max-width: min(92vw, 1100px);
+  max-height: 88vh;
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  border: 1px solid rgba(232,191,79,0.3);
+}
+.lightbox-close {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(232,191,79,0.4);
+  background: rgba(21,20,26,0.9);
+  color: var(--white);
+  font-size: 1.3rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.lightbox-close:hover { color: var(--gold-light); }
+
+/* --- Клик по посту новости (карточка целиком ведёт на отдельную страницу) --- */
+a.news-post-link { display: block; color: inherit; }
+a.news-post-link:hover .text { color: var(--gold-light); }
+.news-post .read-more { display: inline-block; margin-top: 10px; font-size: .8rem; color: var(--gold); }
+
+/* --- FAQ аккордеон --- */
+.faq-item {
+  border: 1px solid rgba(232,191,79,0.18);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 18px;
+  background: none;
+  border: none;
+  color: var(--white);
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: .95rem;
+  text-align: left;
+  cursor: pointer;
+}
+.faq-question:hover { color: var(--gold-light); }
+.faq-question .caret { transition: transform .2s; color: var(--gold); flex-shrink: 0; }
+.faq-item.open .faq-question .caret { transform: rotate(180deg); }
+.faq-answer {
+  display: none;
+  padding: 0 18px 16px;
+  color: var(--muted);
+  font-size: .88rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.faq-item.open .faq-answer { display: block; }
+
+/* --- Навигация для новичков (гид) --- */
+.guide-step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.guide-step .num {
+  flex-shrink: 0;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--amber));
+  color: #1a1406;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cinzel', serif;
+}
+
+/* --- Команда администрации / связь с админами --- */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.team-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+.team-card .avatar-lg-placeholder,
+.team-card .avatar-lg {
+  width: 76px; height: 76px;
+}
+.team-card .role-title { color: var(--muted); font-size: .8rem; }
+.team-card .contact-link {
+  margin-top: 6px;
+  font-size: .82rem;
+  padding: 6px 14px;
+  border-radius: 100px;
+  background: rgba(232,191,79,0.12);
+  border: 1px solid rgba(232,191,79,0.3);
+}
+.team-card .contact-link:hover { background: rgba(232,191,79,0.22); }

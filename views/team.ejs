@@ -1,0 +1,76 @@
+<%- include('partials/header') %>
+
+<div class="wrap" style="max-width:760px;">
+  <div class="eyebrow">📮 Связь</div>
+  <h1 class="gradient-text" style="font-size:2.1rem;">Связь с администрацией</h1>
+  <p style="color:var(--muted); margin-bottom:30px;">Глава семьи и заместители — с кем можно связаться напрямую, или задайте вопрос через форму ниже.</p>
+
+  <% if (team.length === 0) { %>
+    <div class="card empty-state"><span class="big-emoji">👥</span>Список администрации пока пуст.</div>
+  <% } else { %>
+    <div class="team-grid" style="margin-bottom:30px;">
+      <% team.forEach(function(u) { %>
+        <div class="card team-card">
+          <% if (u.avatarPath) { %>
+            <img src="<%= u.avatarPath %>" class="avatar-lg" alt="<%= u.nickname %>">
+          <% } else { %>
+            <div class="avatar-lg-placeholder"><%= u.nickname.charAt(0).toUpperCase() %></div>
+          <% } %>
+          <strong><%= u.nickname %></strong>
+          <span class="badge <%= u.role === 'admin' ? 'badge-admin' : 'badge-deputy' %>">
+            <%= u.role === 'admin' ? 'Глава семьи' : 'Заместитель админа' %>
+          </span>
+          <% if (u.roleTitle) { %><span class="role-title"><%= u.roleTitle %></span><% } %>
+          <% if (u.contact) { %>
+            <a href="<%= /^https?:\/\//.test(u.contact) ? u.contact : (u.contact.startsWith('@') ? 'https://t.me/' + u.contact.slice(1) : u.contact) %>" target="_blank" rel="noopener" class="contact-link">✉️ <%= u.contact %></a>
+          <% } %>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <% if (socialLinks && socialLinks.length) { %>
+    <div class="card" style="margin-bottom:30px;">
+      <h2 style="font-size:1.05rem; margin-bottom:10px;">🔗 Общие соцсети семьи</h2>
+      <div class="row-actions">
+        <% socialLinks.forEach(function(s) { %>
+          <a href="<%= s.url %>" target="_blank" rel="noopener" class="btn btn-sm"><%= s.label %></a>
+        <% }) %>
+      </div>
+    </div>
+  <% } %>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <% if (success) { %><div class="alert alert-success">🎉 <%= success %></div><% } %>
+
+  <div class="card">
+    <h2 style="font-size:1.1rem; margin-bottom:6px;">Задать личный вопрос</h2>
+    <p style="color:var(--muted); font-size:.85rem; margin-bottom:14px;">Не нашли контакт нужного человека? Оставьте вопрос здесь — администрация ответит по указанному вами контакту.</p>
+    <form class="stack" method="POST" action="/team/ask">
+      <div class="field">
+        <label>Кому адресован вопрос</label>
+        <select name="toUserId">
+          <option value="">Всей администрации</option>
+          <% team.forEach(function(u) { %>
+            <option value="<%= u.id %>"><%= u.nickname %> — <%= u.role === 'admin' ? 'Глава семьи' : (u.roleTitle || 'Заместитель админа') %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="field">
+        <label>Твой ник</label>
+        <input type="text" name="fromNickname" required>
+      </div>
+      <div class="field">
+        <label>Контакт для ответа (телеграм)</label>
+        <input type="text" name="fromContact" placeholder="@username" required>
+      </div>
+      <div class="field">
+        <label>Вопрос</label>
+        <textarea name="message" maxlength="800" required></textarea>
+      </div>
+      <button class="btn btn-fun" type="submit">📮 Отправить вопрос</button>
+    </form>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

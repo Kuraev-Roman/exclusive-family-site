@@ -19,6 +19,9 @@
         </div>
         <p style="font-size:.85rem; color:var(--muted); margin-bottom:6px;"><%= new Date(a.createdAt).toLocaleString('ru-RU') %></p>
         <p><strong>Контакт:</strong> <%= a.contact %></p>
+        <% if (a.rank) { %><p><strong>Ранг:</strong> <%= a.rank %></p><% } %>
+        <% if (a.activity) { %><p><strong>Активность:</strong> <%= a.activity %></p><% } %>
+        <% if (a.donation) { %><p><strong>Донат:</strong> <%= a.donation %></p><% } %>
         <% if (a.message) { %><p style="white-space:pre-wrap; margin-top:8px;"><%= a.message %></p><% } %>
         <div class="row-actions" style="margin-top:14px;">
           <% if (a.status === 'new') { %>

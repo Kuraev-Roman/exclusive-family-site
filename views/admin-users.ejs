@@ -3,7 +3,7 @@
 <div class="wrap">
   <div class="eyebrow">⚙️ Админ</div>
   <h1 class="gradient-text" style="font-size:2rem;">Аккаунты участников</h1>
-  <p style="color:var(--muted); margin-bottom:24px;">Только администратор может создавать новые аккаунты. Участник входит под своим ником и может сам сменить пароль в профиле.</p>
+  <p style="color:var(--muted); margin-bottom:24px;">Только главный администратор может создавать аккаунты и назначать заместителей. Участник входит под своим ником и может сам сменить пароль в профиле.</p>
 
   <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
   <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
@@ -22,10 +22,27 @@
         </div>
         <div class="field">
           <label>Роль</label>
-          <select name="role">
+          <select name="role" class="role-select" data-target="new">
             <option value="member">Участник</option>
+            <option value="deputy">Заместитель админа</option>
             <option value="admin">Администратор</option>
           </select>
+        </div>
+        <div class="field">
+          <label>Титульная подпись (необязательно)</label>
+          <input type="text" name="roleTitle" placeholder="Например: зам. по подбору">
+        </div>
+        <div class="field">
+          <label>Контакт (телеграм, для страницы «Связь с администрацией»)</label>
+          <input type="text" name="contact" placeholder="@username">
+        </div>
+        <div class="field portals-field" data-group="new" style="display:none;">
+          <label>Доступ к разделам админ-панели</label>
+          <div class="portals-checks">
+            <% Object.keys(PORTALS).forEach(function(key) { %>
+              <label class="check-inline"><input type="checkbox" name="portals" value="<%= key %>"> <%= PORTALS[key] %></label>
+            <% }) %>
+          </div>
         </div>
         <button class="btn btn-solid" type="submit">Создать</button>
       </form>
@@ -33,32 +50,84 @@
 
     <div class="card">
       <h2 style="font-size:1.1rem;">Список (<%= users.length %>)</h2>
-      <table class="bday-table">
-        <thead><tr><th>Ник</th><th>Роль</th><th></th></tr></thead>
-        <tbody>
-        <% users.forEach(function(u) { %>
-          <tr>
-            <td data-label="Ник"><%= u.nickname %></td>
-            <td data-label="Роль"><span class="badge <%= u.role === 'admin' ? 'badge-admin' : 'badge-member' %>"><%= u.role === 'admin' ? 'Админ' : 'Участник' %></span></td>
-            <td>
-              <div class="row-actions" style="flex-direction:column; align-items:stretch;">
-                <form action="/admin/users/<%= u.id %>/reset-password" method="POST" class="inline-form" style="display:flex; gap:6px;">
-                  <input type="text" name="newPassword" placeholder="новый пароль" style="flex:1; min-width:0; padding:5px 8px; background:var(--black); border:1px solid rgba(212,175,55,.25); border-radius:4px; color:var(--white); font-size:.75rem;">
-                  <button class="btn btn-sm" type="submit">Сбросить</button>
-                </form>
-                <% if (u.nickname !== 'admin') { %>
-                <form action="/admin/users/<%= u.id %>/delete" method="POST" class="inline-form" onsubmit="return confirm('Удалить аккаунт <%= u.nickname %>?');">
-                  <button class="btn btn-sm btn-danger" type="submit" style="width:100%;">Удалить</button>
-                </form>
-                <% } %>
+      <% users.forEach(function(u) { %>
+        <div class="card" style="margin-top:12px; padding:16px;">
+          <div class="row-actions" style="justify-content:space-between; margin-bottom:10px;">
+            <strong><%= u.nickname %></strong>
+            <span class="badge <%= u.role === 'admin' ? 'badge-admin' : (u.role === 'deputy' ? 'badge-deputy' : 'badge-member') %>">
+              <%= u.role === 'admin' ? 'Админ' : (u.role === 'deputy' ? 'Зам. админа' : 'Участник') %>
+            </span>
+          </div>
+          <% if (u.roleTitle) { %><p style="font-size:.8rem; color:var(--muted);"><%= u.roleTitle %></p><% } %>
+          <% if (u.contact) { %><p style="font-size:.8rem; color:var(--muted);">Контакт: <%= u.contact %></p><% } %>
+          <% if (u.role === 'deputy' && u.portals && u.portals.length) { %>
+            <p style="font-size:.78rem; color:var(--muted);">Доступ: <%= u.portals.map(function(p){ return PORTALS[p] || p; }).join(', ') %></p>
+          <% } %>
+
+          <details style="margin-top:10px;">
+            <summary style="cursor:pointer; font-size:.82rem; color:var(--gold);">Изменить роль и доступ</summary>
+            <form method="POST" action="/admin/users/<%= u.id %>/update-role" class="stack" style="margin-top:10px;">
+              <div class="field">
+                <label>Роль</label>
+                <select name="role" class="role-select" data-target="u<%= u.id %>" <%= u.nickname === 'admin' ? 'disabled' : '' %>>
+                  <option value="member" <%= u.role === 'member' ? 'selected' : '' %>>Участник</option>
+                  <option value="deputy" <%= u.role === 'deputy' ? 'selected' : '' %>>Заместитель админа</option>
+                  <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Администратор</option>
+                </select>
               </div>
-            </td>
-          </tr>
-        <% }) %>
-        </tbody>
-      </table>
+              <div class="field">
+                <label>Титульная подпись</label>
+                <input type="text" name="roleTitle" value="<%= u.roleTitle || '' %>">
+              </div>
+              <div class="field">
+                <label>Контакт</label>
+                <input type="text" name="contact" value="<%= u.contact || '' %>">
+              </div>
+              <div class="field portals-field" data-group="u<%= u.id %>" style="<%= u.role === 'deputy' ? '' : 'display:none;' %>">
+                <label>Доступ к разделам</label>
+                <div class="portals-checks">
+                  <% Object.keys(PORTALS).forEach(function(key) { %>
+                    <label class="check-inline">
+                      <input type="checkbox" name="portals" value="<%= key %>" <%= (u.portals || []).includes(key) ? 'checked' : '' %>>
+                      <%= PORTALS[key] %>
+                    </label>
+                  <% }) %>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-solid" type="submit" <%= u.nickname === 'admin' ? 'disabled' : '' %>>Сохранить</button>
+            </form>
+          </details>
+
+          <div class="row-actions" style="flex-direction:column; align-items:stretch; margin-top:10px;">
+            <form action="/admin/users/<%= u.id %>/reset-password" method="POST" class="inline-form" style="display:flex; gap:6px;">
+              <input type="text" name="newPassword" placeholder="новый пароль" style="flex:1; min-width:0; padding:5px 8px; background:var(--black); border:1px solid rgba(212,175,55,.25); border-radius:4px; color:var(--white); font-size:.75rem;">
+              <button class="btn btn-sm" type="submit">Сбросить</button>
+            </form>
+            <% if (u.nickname !== 'admin') { %>
+            <form action="/admin/users/<%= u.id %>/delete" method="POST" class="inline-form" onsubmit="return confirm('Удалить аккаунт <%= u.nickname %>?');">
+              <button class="btn btn-sm btn-danger" type="submit" style="width:100%;">Удалить</button>
+            </form>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
     </div>
   </div>
 </div>
+
+<style>
+  .portals-checks { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+  .check-inline { display: flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--muted); font-weight: 400; }
+  .check-inline input { width: auto; }
+</style>
+<script>
+  document.querySelectorAll('.role-select').forEach(function (sel) {
+    var group = document.querySelector('.portals-field[data-group="' + sel.dataset.target + '"]');
+    if (!group) return;
+    function sync() { group.style.display = sel.value === 'deputy' ? '' : 'none'; }
+    sel.addEventListener('change', sync);
+    sync();
+  });
+</script>
 
 <%- include('partials/footer') %>

@@ -13,7 +13,7 @@
   <header class="site-header">
     <div class="header-inner">
       <a href="/" class="brand">
-        <img src="/images/logo.jpg" alt="<%= settings.siteName %>">
+        <img src="/images/logo-crest.jpg" alt="<%= settings.siteName %>">
         <div class="brand-text">
           <div class="name">EXCLUSIVE</div>
           <div class="tag"><%= settings.tagline %></div>
@@ -26,18 +26,68 @@
 
       <nav class="main-nav" id="mainNav">
         <a href="/">🏠 Главная</a>
-        <a href="/news">📰 Новости</a>
-        <a href="/album">📸 Альбом</a>
-        <a href="/interactives">🗳️ Интерактивы</a>
+
+        <div class="nav-item has-dropdown">
+          <button type="button" class="nav-toggle">🏰 О семье <span class="caret">▾</span></button>
+          <div class="nav-dropdown">
+            <a href="/news">📰 Новости</a>
+            <a href="/album">📸 Альбом</a>
+            <a href="/birthdays">🎂 Дни рождения</a>
+            <a href="/interactives">🗳️ Интерактивы</a>
+          </div>
+        </div>
+
+        <div class="nav-item has-dropdown">
+          <button type="button" class="nav-toggle">🤝 Сообщество <span class="caret">▾</span></button>
+          <div class="nav-dropdown">
+            <a href="/join">✨ Вступить</a>
+            <a href="/guide">🧭 Навигация для новичков</a>
+            <a href="/faq">❓ FAQ</a>
+            <a href="/team">📮 Связь с администрацией</a>
+          </div>
+        </div>
+
         <% if (currentUser) { %>
           <a href="/kraj/send">🚨 Кражи</a>
         <% } %>
-        <% if (!currentUser) { %>
-          <a href="/join" class="highlight">✨ Вступить</a>
-        <% } %>
-        <% if (currentUser && currentUser.role === 'admin') { %>
-          <a href="/birthdays">🎂 Дни рождения</a>
-          <a href="/admin">⚙️ Админ-панель</a>
+
+        <% if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'deputy')) { %>
+          <div class="nav-item has-dropdown">
+            <button type="button" class="nav-toggle">⚙️ Админ-панель <span class="caret">▾</span></button>
+            <div class="nav-dropdown">
+              <a href="/admin">📊 Обзор панели</a>
+              <% if (currentUser.role === 'admin') { %>
+                <a href="/admin/users">👤 Аккаунты</a>
+              <% } %>
+              <% if (currentUser.role === 'admin' || currentUser.portals.includes('birthdays')) { %>
+                <a href="/admin/birthdays">🎂 Дни рождения</a>
+              <% } %>
+              <% if (currentUser.role === 'admin' || currentUser.portals.includes('news')) { %>
+                <a href="/admin/news">📰 Новости</a>
+              <% } %>
+              <% if (currentUser.role === 'admin' || currentUser.portals.includes('album')) { %>
+                <a href="/admin/album">📸 Альбом</a>
+              <% } %>
+              <% if (currentUser.role === 'admin' || currentUser.portals.includes('interactives')) { %>
+                <a href="/admin/interactives">🗳️ Интерактивы</a>
+              <% } %>
+              <% if (currentUser.role === 'admin' || currentUser.portals.includes('applications')) { %>
+                <a href="/admin/applications">✨ Заявки</a>
+              <% } %>
+              <% if (currentUser.role === 'admin' || currentUser.portals.includes('faq')) { %>
+                <a href="/admin/faq">❓ FAQ</a>
+              <% } %>
+              <% if (currentUser.role === 'admin' || currentUser.portals.includes('questions')) { %>
+                <a href="/admin/questions">📮 Обращения</a>
+              <% } %>
+              <% if (currentUser.role === 'admin' || currentUser.portals.includes('kraj')) { %>
+                <a href="/kraj">🚨 Кражи (список)</a>
+              <% } %>
+              <% if (currentUser.role === 'admin') { %>
+                <a href="/admin/settings">🔗 Настройки</a>
+              <% } %>
+            </div>
+          </div>
         <% } %>
 
         <div class="nav-actions-mobile">

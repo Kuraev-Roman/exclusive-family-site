@@ -1,0 +1,40 @@
+<%- include('partials/header') %>
+
+<div class="wrap">
+  <div class="eyebrow">⚙️ Админ</div>
+  <h1 class="gradient-text" style="font-size:2rem;">Обращения к администрации</h1>
+  <p style="color:var(--muted); margin-bottom:24px;">Личные вопросы, отправленные через страницу «Связь с администрацией».</p>
+
+  <% if (items.length === 0) { %>
+    <div class="card empty-state"><span class="big-emoji">📮</span>Обращений пока нет.</div>
+  <% } %>
+
+  <div class="grid grid-2">
+    <% items.forEach(function(q) { %>
+      <div class="card">
+        <div class="row-actions" style="justify-content:space-between; margin-bottom:10px;">
+          <strong>👤 <%= q.fromNickname %></strong>
+          <span class="badge <%= q.status === 'new' ? 'badge-new' : 'badge-resolved' %>">
+            <%= q.status === 'new' ? 'Новое' : 'Обработано' %>
+          </span>
+        </div>
+        <p style="font-size:.85rem; color:var(--muted); margin-bottom:6px;"><%= new Date(q.createdAt).toLocaleString('ru-RU') %></p>
+        <p><strong>Кому:</strong> <%= q.toNickname %></p>
+        <p><strong>Контакт для ответа:</strong> <%= q.fromContact %></p>
+        <p style="white-space:pre-wrap; margin-top:8px;"><%= q.message %></p>
+        <div class="row-actions" style="margin-top:14px;">
+          <% if (q.status === 'new') { %>
+            <form action="/admin/questions/<%= q.id %>/resolve" method="POST" class="inline-form">
+              <button class="btn btn-sm" type="submit">Отметить обработанным</button>
+            </form>
+          <% } %>
+          <form action="/admin/questions/<%= q.id %>/delete" method="POST" class="inline-form" onsubmit="return confirm('Удалить обращение?');">
+            <button class="btn btn-sm btn-danger" type="submit">Удалить</button>
+          </form>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

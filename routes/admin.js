@@ -7,53 +7,98 @@ const bcrypt = require('bcryptjs');
 const XLSX = require('xlsx');
 const { parse } = require('csv-parse/sync');
 const db = require('../utils/db');
-const { requireAdmin } = require('../utils/middleware');
+const { requireAdmin, requireStaff, requirePortal, PORTALS } = require('../utils/middleware');
 
-router.use(requireAdmin);
+// Вход в саму админ-панель — для админа и замов (у замов доступ к разделам
+// внутри уже ограничивается requirePortal на каждом конкретном роуте).
+router.use(requireStaff);
+
+function visiblePortalsFor(user) {
+  if (user.role === 'admin') return Object.keys(PORTALS);
+  return (user.portals || []).filter(p => PORTALS[p]);
+}
 
 // ---------- ГЛАВНАЯ АДМИН-ПАНЕЛЬ ----------
 router.get('/', (req, res) => {
+  const can = visiblePortalsFor(req.session.user);
   res.render('admin-dashboard', {
+    can,
+    isAdmin: req.session.user.role === 'admin',
     usersCount: db.get('users').size().value(),
     birthdaysCount: db.get('birthdays').size().value(),
     krajNewCount: db.get('kraj').filter({ status: 'new' }).size().value(),
     newsCount: db.get('news').size().value(),
     pollsCount: db.get('polls').size().value(),
     applicationsNewCount: db.get('applications').filter({ status: 'new' }).size().value(),
-    albumCount: db.get('album').size().value()
+    albumCount: db.get('album').size().value(),
+    faqCount: db.get('faq').size().value(),
+    questionsNewCount: db.get('questions').filter({ status: 'new' }).size().value()
   });
 });
 
-// ---------- ПОЛЬЗОВАТЕЛИ ----------
-router.get('/users', (req, res) => {
-  res.render('admin-users', { users: db.get('users').value(), error: null, success: null });
+// ---------- ПОЛЬЗОВАТЕЛИ (только главный админ) ----------
+router.get('/users', requireAdmin, (req, res) => {
+  res.render('admin-users', { users: db.get('users').value(), PORTALS, error: null, success: null });
 });
 
-router.post('/users/create', (req, res) => {
-  const { nickname, password, role } = req.body;
+router.post('/users/create', requireAdmin, (req, res) => {
+  const { nickname, password, role, roleTitle, contact } = req.body;
+  const portals = [].concat(req.body.portals || []).filter(p => PORTALS[p]);
   const render = (error, success) =>
-    res.render('admin-users', { users: db.get('users').value(), error, success });
+    res.render('admin-users', { users: db.get('users').value(), PORTALS, error, success });
 
   if (!nickname || !password) return render('Заполните ник и пароль.', null);
   if (db.get('users').find({ nickname }).value()) return render('Такой ник уже занят.', null);
+
+  const finalRole = ['admin', 'deputy'].includes(role) ? role : 'member';
 
   db.get('users').push({
     id: Date.now(),
     nickname: nickname.trim(),
     passwordHash: bcrypt.hashSync(password, 10),
-    role: role === 'admin' ? 'admin' : 'member',
+    role: finalRole,
+    roleTitle: (roleTitle || '').trim().slice(0, 60),
+    contact: (contact || '').trim().slice(0, 120),
+    portals: finalRole === 'deputy' ? portals : [],
     createdAt: new Date().toISOString()
   }).write();
 
   render(null, `Аккаунт "${nickname}" создан.`);
 });
 
-router.post('/users/:id/delete', (req, res) => {
+router.post('/users/:id/update-role', requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  const { role, roleTitle, contact } = req.body;
+  const portals = [].concat(req.body.portals || []).filter(p => PORTALS[p]);
+  const user = db.get('users').find({ id }).value();
+
+  const render = (error, success) =>
+    res.render('admin-users', { users: db.get('users').value(), PORTALS, error, success });
+
+  if (!user) return render('Пользователь не найден.', null);
+  if (user.nickname === 'admin' && role !== 'admin') {
+    return render('Нельзя понизить роль главного администратора.', null);
+  }
+
+  const finalRole = ['admin', 'deputy', 'member'].includes(role) ? role : 'member';
+
+  db.get('users').find({ id }).assign({
+    role: finalRole,
+    roleTitle: (roleTitle || '').trim().slice(0, 60),
+    contact: (contact || '').trim().slice(0, 120),
+    portals: finalRole === 'deputy' ? portals : []
+  }).write();
+
+  render(null, `Роль и доступ участника "${user.nickname}" обновлены.`);
+});
+
+router.post('/users/:id/delete', requireAdmin, (req, res) => {
   const id = Number(req.params.id);
   const user = db.get('users').find({ id }).value();
   if (user && user.nickname === 'admin') {
     return res.render('admin-users', {
       users: db.get('users').value(),
+      PORTALS,
       error: 'Нельзя удалить главного администратора.',
       success: null
     });
@@ -62,12 +107,13 @@ router.post('/users/:id/delete', (req, res) => {
   res.redirect('/admin/users');
 });
 
-router.post('/users/:id/reset-password', (req, res) => {
+router.post('/users/:id/reset-password', requireAdmin, (req, res) => {
   const id = Number(req.params.id);
   const { newPassword } = req.body;
   if (!newPassword || newPassword.length < 4) {
     return res.render('admin-users', {
       users: db.get('users').value(),
+      PORTALS,
       error: 'Пароль должен быть от 4 символов.',
       success: null
     });
@@ -75,6 +121,7 @@ router.post('/users/:id/reset-password', (req, res) => {
   db.get('users').find({ id }).assign({ passwordHash: bcrypt.hashSync(newPassword, 10) }).write();
   res.render('admin-users', {
     users: db.get('users').value(),
+    PORTALS,
     error: null,
     success: 'Пароль пользователя сброшен.'
   });
@@ -92,12 +139,12 @@ const bdayPhotoStorage = multer.diskStorage({
 });
 const bdayPhotoUpload = multer({ storage: bdayPhotoStorage, limits: { fileSize: 6 * 1024 * 1024 } });
 
-router.get('/birthdays', (req, res) => {
+router.get('/birthdays', requirePortal('birthdays'), (req, res) => {
   const rows = db.get('birthdays').sortBy(['month', 'day']).value();
   res.render('admin-birthdays', { rows, error: null, success: null });
 });
 
-router.post('/birthdays/add', bdayPhotoUpload.single('photo'), (req, res) => {
+router.post('/birthdays/add', requirePortal('birthdays'), bdayPhotoUpload.single('photo'), (req, res) => {
   const { nickname, day, month } = req.body;
   const d = Number(day), m = Number(month);
   const render = (error, success) =>
@@ -119,7 +166,7 @@ router.post('/birthdays/add', bdayPhotoUpload.single('photo'), (req, res) => {
   render(null, `Добавлено: ${nickname}`);
 });
 
-router.post('/birthdays/:id/photo', bdayPhotoUpload.single('photo'), (req, res) => {
+router.post('/birthdays/:id/photo', requirePortal('birthdays'), bdayPhotoUpload.single('photo'), (req, res) => {
   if (req.file) {
     db.get('birthdays').find({ id: Number(req.params.id) })
       .assign({ photo: `/uploads/avatars/${req.file.filename}` }).write();
@@ -127,13 +174,13 @@ router.post('/birthdays/:id/photo', bdayPhotoUpload.single('photo'), (req, res) 
   res.redirect('/admin/birthdays');
 });
 
-router.post('/birthdays/:id/delete', (req, res) => {
+router.post('/birthdays/:id/delete', requirePortal('birthdays'), (req, res) => {
   db.get('birthdays').remove({ id: Number(req.params.id) }).write();
   res.redirect('/admin/birthdays');
 });
 
 // Импорт таблицы Excel (.xlsx) или CSV с колонками Nickname / День / Месяц (или дата)
-router.post('/birthdays/import', importUpload.single('file'), (req, res) => {
+router.post('/birthdays/import', requirePortal('birthdays'), importUpload.single('file'), (req, res) => {
   const render = (error, success) =>
     res.render('admin-birthdays', {
       rows: db.get('birthdays').sortBy(['month', 'day']).value(), error, success
@@ -212,11 +259,11 @@ const newsStorage = multer.diskStorage({
 });
 const newsUpload = multer({ storage: newsStorage, limits: { fileSize: 10 * 1024 * 1024 } });
 
-router.get('/news', (req, res) => {
+router.get('/news', requirePortal('news'), (req, res) => {
   res.render('admin-news', { items: db.get('news').sortBy('createdAt').reverse().value(), error: null, success: null });
 });
 
-router.post('/news/create', newsUpload.array('images', 6), (req, res) => {
+router.post('/news/create', requirePortal('news'), newsUpload.array('images', 6), (req, res) => {
   const { text, videoUrl } = req.body;
   const render = (error, success) =>
     res.render('admin-news', {
@@ -238,7 +285,7 @@ router.post('/news/create', newsUpload.array('images', 6), (req, res) => {
   render(null, 'Пост опубликован.');
 });
 
-router.post('/news/:id/delete', (req, res) => {
+router.post('/news/:id/delete', requirePortal('news'), (req, res) => {
   db.get('news').remove({ id: Number(req.params.id) }).write();
   res.redirect('/admin/news');
 });
@@ -253,14 +300,14 @@ const pollImageStorage = multer.diskStorage({
 });
 const pollImageUpload = multer({ storage: pollImageStorage, limits: { fileSize: 8 * 1024 * 1024 } });
 
-router.get('/interactives', (req, res) => {
+router.get('/interactives', requirePortal('interactives'), (req, res) => {
   res.render('admin-interactives', {
     polls: db.get('polls').sortBy('createdAt').reverse().value(),
     error: null, success: null
   });
 });
 
-router.post('/interactives/create', pollImageUpload.single('image'), (req, res) => {
+router.post('/interactives/create', requirePortal('interactives'), pollImageUpload.single('image'), (req, res) => {
   const { question } = req.body;
   const options = (req.body.options || '')
     .split('\n')
@@ -289,29 +336,29 @@ router.post('/interactives/create', pollImageUpload.single('image'), (req, res) 
   render(null, 'Голосование создано.');
 });
 
-router.post('/interactives/:id/close', (req, res) => {
+router.post('/interactives/:id/close', requirePortal('interactives'), (req, res) => {
   db.get('polls').find({ id: Number(req.params.id) }).assign({ status: 'closed' }).write();
   res.redirect('/admin/interactives');
 });
 
-router.post('/interactives/:id/delete', (req, res) => {
+router.post('/interactives/:id/delete', requirePortal('interactives'), (req, res) => {
   db.get('polls').remove({ id: Number(req.params.id) }).write();
   res.redirect('/admin/interactives');
 });
 
 // ---------- ЗАЯВКИ НА ВСТУПЛЕНИЕ ----------
-router.get('/applications', (req, res) => {
+router.get('/applications', requirePortal('applications'), (req, res) => {
   res.render('admin-applications', {
     applications: db.get('applications').sortBy('createdAt').reverse().value()
   });
 });
 
-router.post('/applications/:id/resolve', (req, res) => {
+router.post('/applications/:id/resolve', requirePortal('applications'), (req, res) => {
   db.get('applications').find({ id: Number(req.params.id) }).assign({ status: 'resolved' }).write();
   res.redirect('/admin/applications');
 });
 
-router.post('/applications/:id/delete', (req, res) => {
+router.post('/applications/:id/delete', requirePortal('applications'), (req, res) => {
   db.get('applications').remove({ id: Number(req.params.id) }).write();
   res.redirect('/admin/applications');
 });
@@ -333,14 +380,14 @@ const albumUpload = multer({
   }
 });
 
-router.get('/album', (req, res) => {
+router.get('/album', requirePortal('album'), (req, res) => {
   res.render('admin-album', {
     items: db.get('album').sortBy('createdAt').reverse().value(),
     error: null, success: null
   });
 });
 
-router.post('/album/upload', albumUpload.array('files', 10), (req, res) => {
+router.post('/album/upload', requirePortal('album'), albumUpload.array('files', 10), (req, res) => {
   const render = (error, success) =>
     res.render('admin-album', {
       items: db.get('album').sortBy('createdAt').reverse().value(), error, success
@@ -364,20 +411,20 @@ router.post('/album/upload', albumUpload.array('files', 10), (req, res) => {
   render(null, `Загружено файлов: ${req.files.length}`);
 });
 
-router.post('/album/:id/delete', (req, res) => {
+router.post('/album/:id/delete', requirePortal('album'), (req, res) => {
   db.get('album').remove({ id: Number(req.params.id) }).write();
   res.redirect('/admin/album');
 });
 
 // ---------- НАСТРОЙКИ: ССЫЛКИ НА СОЦСЕТИ ----------
-router.get('/settings', (req, res) => {
+router.get('/settings', requireAdmin, (req, res) => {
   res.render('admin-settings', {
     socialLinks: db.get('settings.socialLinks').value() || [],
     error: null, success: null
   });
 });
 
-router.post('/settings/social/add', (req, res) => {
+router.post('/settings/social/add', requireAdmin, (req, res) => {
   const { label, url } = req.body;
   const render = (error, success) =>
     res.render('admin-settings', {
@@ -395,9 +442,62 @@ router.post('/settings/social/add', (req, res) => {
   render(null, 'Ссылка добавлена.');
 });
 
-router.post('/settings/social/:id/delete', (req, res) => {
+router.post('/settings/social/:id/delete', requireAdmin, (req, res) => {
   db.get('settings.socialLinks').remove({ id: Number(req.params.id) }).write();
   res.redirect('/admin/settings');
+});
+
+// ---------- FAQ (часто задаваемые вопросы) ----------
+router.get('/faq', requirePortal('faq'), (req, res) => {
+  res.render('admin-faq', {
+    items: db.get('faq').sortBy('order').value(),
+    error: null, success: null
+  });
+});
+
+router.post('/faq/create', requirePortal('faq'), (req, res) => {
+  const { question, answer } = req.body;
+  const render = (error, success) =>
+    res.render('admin-faq', { items: db.get('faq').sortBy('order').value(), error, success });
+
+  if (!question || !answer) return render('Заполните вопрос и ответ.', null);
+
+  const maxOrder = db.get('faq').map('order').max().value() || 0;
+  db.get('faq').push({
+    id: Date.now(),
+    question: question.trim(),
+    answer: answer.trim(),
+    order: maxOrder + 1
+  }).write();
+
+  render(null, 'Вопрос добавлен в FAQ.');
+});
+
+router.post('/faq/:id/delete', requirePortal('faq'), (req, res) => {
+  db.get('faq').remove({ id: Number(req.params.id) }).write();
+  res.redirect('/admin/faq');
+});
+
+// ---------- ОБРАЩЕНИЯ / ЛИЧНЫЕ ВОПРОСЫ К АДМИНИСТРАЦИИ ----------
+router.get('/questions', requirePortal('questions'), (req, res) => {
+  const me = req.session.user;
+  let items = db.get('questions').sortBy('createdAt').reverse().value();
+  // Замы видят только вопросы, адресованные лично им (или всей администрации);
+  // главный админ видит всё.
+  if (me.role === 'deputy') {
+    items = items.filter(q => !q.toUserId || q.toUserId === me.id);
+  }
+  res.render('admin-questions', { items });
+});
+
+router.post('/questions/:id/resolve', requirePortal('questions'), (req, res) => {
+  db.get('questions').find({ id: Number(req.params.id) }).assign({ status: 'resolved' }).write();
+  res.redirect('/admin/questions');
+});
+
+router.post('/questions/:id/delete', requirePortal('questions'), (req, res) => {
+  db.get('questions').remove({ id: Number(req.params.id) }).write();
+  res.redirect('/admin/questions');
 });
 
 module.exports = router;

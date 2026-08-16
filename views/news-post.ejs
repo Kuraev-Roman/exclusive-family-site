@@ -1,0 +1,25 @@
+<%- include('partials/header') %>
+
+<div class="wrap" style="max-width:720px;">
+  <div class="eyebrow"><a href="/news">← Все новости</a></div>
+  <h1 class="gradient-text" style="font-size:1.8rem;">📰 Пост семьи</h1>
+
+  <div class="card news-post" style="margin-top:20px;">
+    <div class="meta"><%= new Date(item.createdAt).toLocaleString('ru-RU') %></div>
+    <% if (item.text) { %><div class="text"><%= item.text %></div><% } %>
+    <% if (item.images && item.images.length) { %>
+      <div class="news-images">
+        <% item.images.forEach(function(img) { %>
+          <img src="<%= img %>" alt="фото новости" class="lightbox-trigger">
+        <% }) %>
+      </div>
+    <% } %>
+    <% if (item.videoUrl) { %>
+      <div class="video-slot">
+        🎬 Видео: <a href="<%= item.videoUrl %>" target="_blank" rel="noopener" style="margin-left:6px;"><%= item.videoUrl %></a>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

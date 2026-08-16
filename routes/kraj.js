@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const db = require('../utils/db');
-const { requireAuth, requireAdmin } = require('../utils/middleware');
+const { requireAuth, requirePortal } = require('../utils/middleware');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, path.join(__dirname, '..', 'public', 'uploads', 'kraj')),
@@ -23,7 +23,7 @@ const upload = multer({
 });
 
 // Список сообщений/репортов — видно только админу
-router.get('/', requireAdmin, (req, res) => {
+router.get('/', requirePortal('kraj'), (req, res) => {
   const items = db.get('kraj').sortBy('createdAt').reverse().value();
   res.render('kraj-admin', { items });
 });
@@ -49,12 +49,12 @@ router.post('/send', requireAuth, upload.single('image'), (req, res) => {
 });
 
 // Админ отмечает репорт как рассмотренный
-router.post('/:id/resolve', requireAdmin, (req, res) => {
+router.post('/:id/resolve', requirePortal('kraj'), (req, res) => {
   db.get('kraj').find({ id: Number(req.params.id) }).assign({ status: 'resolved' }).write();
   res.redirect('/kraj');
 });
 
-router.post('/:id/delete', requireAdmin, (req, res) => {
+router.post('/:id/delete', requirePortal('kraj'), (req, res) => {
   db.get('kraj').remove({ id: Number(req.params.id) }).write();
   res.redirect('/kraj');
 });

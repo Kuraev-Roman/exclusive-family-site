@@ -3,7 +3,7 @@
 <div class="wrap" style="max-width:720px;">
   <div class="eyebrow">Лента</div>
   <h1 class="gradient-text" style="font-size:2.1rem;">📰 Новости семьи</h1>
-  <p style="color:var(--muted); margin-bottom:30px;">Сюда админ переносит посты из телеграм-канала: текст, фото и видео.</p>
+  <p style="color:var(--muted); margin-bottom:30px;">Сюда админ переносит посты из телеграм-канала: текст, фото и видео. Нажмите на фото, чтобы открыть в полный размер, или на пост — чтобы открыть его отдельной страницей.</p>
 
   <% if (items.length === 0) { %>
     <div class="card empty-state">Пока нет ни одного поста.</div>
@@ -12,10 +12,14 @@
   <% items.forEach(function(n) { %>
     <div class="card news-post">
       <div class="meta"><%= new Date(n.createdAt).toLocaleString('ru-RU') %></div>
-      <% if (n.text) { %><div class="text"><%= n.text %></div><% } %>
+      <a href="/news/<%= n.id %>" class="news-post-link">
+        <% if (n.text) { %><div class="text"><%= n.text %></div><% } %>
+      </a>
       <% if (n.images && n.images.length) { %>
         <div class="news-images">
-          <% n.images.forEach(function(img) { %><img src="<%= img %>" alt="фото новости"><% }) %>
+          <% n.images.forEach(function(img) { %>
+            <img src="<%= img %>" alt="фото новости" class="lightbox-trigger">
+          <% }) %>
         </div>
       <% } %>
       <% if (n.videoUrl) { %>
@@ -23,6 +27,7 @@
           🎬 Видео: <a href="<%= n.videoUrl %>" target="_blank" rel="noopener" style="margin-left:6px;"><%= n.videoUrl %></a>
         </div>
       <% } %>
+      <a href="/news/<%= n.id %>" class="read-more">Открыть пост →</a>
     </div>
   <% }) %>
 </div>

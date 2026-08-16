@@ -1,7 +1,7 @@
 <%- include('partials/header') %>
 
 <section class="hero">
-  <img src="/images/logo.jpg" class="hero-crest" alt="EXCLUSIVE crest">
+  <img src="/images/logo-crest.jpg" class="hero-crest" alt="EXCLUSIVE crest">
   <div class="eyebrow">✨ Семья ✨</div>
   <h1 class="gradient-text">EXCLUSIVE FAMILY</h1>
   <div class="divider-crown">♛</div>
@@ -84,12 +84,15 @@
         <% news.forEach(function(n) { %>
           <div class="card news-post">
             <div class="meta"><%= new Date(n.createdAt).toLocaleString('ru-RU') %></div>
-            <% if (n.text) { %><div class="text"><%= n.text.length > 220 ? n.text.slice(0,220) + '…' : n.text %></div><% } %>
+            <a href="/news/<%= n.id %>" class="news-post-link">
+              <% if (n.text) { %><div class="text"><%= n.text.length > 220 ? n.text.slice(0,220) + '…' : n.text %></div><% } %>
+            </a>
             <% if (n.images && n.images.length) { %>
               <div class="news-images">
-                <% n.images.slice(0,3).forEach(function(img) { %><img src="<%= img %>" alt="фото новости"><% }) %>
+                <% n.images.slice(0,3).forEach(function(img) { %><img src="<%= img %>" alt="фото новости" class="lightbox-trigger"><% }) %>
               </div>
             <% } %>
+            <a href="/news/<%= n.id %>" class="read-more">Открыть пост →</a>
           </div>
         <% }) %>
       <% } %>

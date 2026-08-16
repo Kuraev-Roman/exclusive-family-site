@@ -1,0 +1,45 @@
+<%- include('partials/header') %>
+
+<div class="wrap">
+  <div class="eyebrow">⚙️ Админ</div>
+  <h1 class="gradient-text" style="font-size:2rem;">FAQ — часто задаваемые вопросы</h1>
+  <p style="color:var(--muted); margin-bottom:24px;">Эти вопросы и ответы отображаются на публичной странице «FAQ».</p>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <h2 style="font-size:1.1rem;">Добавить вопрос</h2>
+      <form class="stack" method="POST" action="/admin/faq/create">
+        <div class="field">
+          <label>Вопрос</label>
+          <input type="text" name="question" required>
+        </div>
+        <div class="field">
+          <label>Ответ</label>
+          <textarea name="answer" required></textarea>
+        </div>
+        <button class="btn btn-solid" type="submit">Добавить</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:1.1rem;">Текущие вопросы (<%= items.length %>)</h2>
+      <% if (items.length === 0) { %>
+        <p style="color:var(--muted); font-size:.85rem;">Пока ничего не добавлено.</p>
+      <% } %>
+      <% items.forEach(function(f) { %>
+        <div class="upcoming-pill" style="align-items:flex-start; flex-direction:column; gap:6px;">
+          <strong style="font-size:.88rem;"><%= f.question %></strong>
+          <span style="color:var(--muted); font-size:.8rem; white-space:pre-wrap;"><%= f.answer %></span>
+          <form action="/admin/faq/<%= f.id %>/delete" method="POST" class="inline-form" onsubmit="return confirm('Удалить вопрос?');">
+            <button class="btn btn-sm btn-danger" type="submit">Удалить</button>
+          </form>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -51,6 +51,13 @@ router.get('/news', (req, res) => {
   res.render('news', { items });
 });
 
+// Отдельная страница одного поста — чтобы на него можно было дать прямую ссылку
+router.get('/news/:id', (req, res) => {
+  const item = db.get('news').find({ id: Number(req.params.id) }).value();
+  if (!item) return res.status(404).render('404');
+  res.render('news-post', { item });
+});
+
 router.get('/minions', (req, res) => {
   const jokes = db.get('minions').value();
   res.render('minions', { jokes });
@@ -95,7 +102,7 @@ router.get('/join', (req, res) => {
 });
 
 router.post('/join', (req, res) => {
-  const { nickname, contact, message } = req.body;
+  const { nickname, contact, rank, activity, donation, message } = req.body;
   if (!nickname || !contact) {
     return res.render('join', { error: 'Укажите ник и контакт (телеграм) для связи.', success: null });
   }
@@ -103,11 +110,65 @@ router.post('/join', (req, res) => {
     id: Date.now(),
     nickname: nickname.trim(),
     contact: contact.trim(),
+    rank: (rank || '').trim().slice(0, 40),
+    activity: (activity || '').trim().slice(0, 40),
+    donation: (donation || '').trim().slice(0, 40),
     message: (message || '').trim().slice(0, 800),
     status: 'new',
     createdAt: new Date().toISOString()
   }).write();
   res.render('join', { error: null, success: 'Заявка отправлена! Админ свяжется с вами в ближайшее время.' });
+});
+
+// ---------- FAQ ----------
+router.get('/faq', (req, res) => {
+  const items = db.get('faq').sortBy('order').value();
+  res.render('faq', { items });
+});
+
+// ---------- НАВИГАЦИЯ ДЛЯ НОВИЧКОВ ----------
+router.get('/guide', (req, res) => {
+  res.render('guide');
+});
+
+// ---------- СВЯЗЬ С АДМИНИСТРАЦИЕЙ ----------
+router.get('/team', (req, res) => {
+  const team = db.get('users')
+    .filter(u => u.role === 'admin' || u.role === 'deputy')
+    .sortBy(u => (u.role === 'admin' ? 0 : 1))
+    .value();
+  res.render('team', {
+    team,
+    socialLinks: db.get('settings.socialLinks').value() || [],
+    error: null, success: null
+  });
+});
+
+router.post('/team/ask', (req, res) => {
+  const { toUserId, fromNickname, fromContact, message } = req.body;
+  const team = db.get('users').filter(u => u.role === 'admin' || u.role === 'deputy').value();
+  const socialLinks = db.get('settings.socialLinks').value() || [];
+
+  const render = (error, success) => res.render('team', { team, socialLinks, error, success });
+
+  if (!fromNickname || !fromContact || !message) {
+    return render('Заполните ник, контакт для ответа и сам вопрос.', null);
+  }
+
+  const target = toUserId ? db.get('users').find({ id: Number(toUserId) }).value() : null;
+
+  db.get('questions').push({
+    id: Date.now(),
+    toUserId: target ? target.id : null,
+    toNickname: target ? target.nickname : 'Вся администрация',
+    fromNickname: fromNickname.trim(),
+    fromContact: fromContact.trim(),
+    message: message.trim().slice(0, 800),
+    status: 'new',
+    createdAt: new Date().toISOString()
+  }).write();
+
+  render(null, 'Вопрос отправлен! Администрация ответит вам по указанному контакту.');
 });
 
 module.exports = router;

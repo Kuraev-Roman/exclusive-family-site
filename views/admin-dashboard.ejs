@@ -3,48 +3,81 @@
 <div class="wrap">
   <div class="eyebrow">⚙️ Панель управления</div>
   <h1 class="gradient-text" style="font-size:2.1rem;">Админ-панель семьи</h1>
+  <% if (!isAdmin) { %>
+    <p style="color:var(--muted); margin-top:10px;">Вы вошли как заместитель админа — доступны только выданные вам разделы.</p>
+  <% } %>
 
   <div class="grid grid-3" style="margin-top:24px;">
-    <a href="/admin/users" class="card">
-      <div class="eyebrow">👤 Аккаунты</div>
-      <h2 style="font-size:1.7rem;"><%= usersCount %></h2>
-      <p style="color:var(--muted);">Создание и управление аккаунтами участников</p>
-    </a>
-    <a href="/admin/birthdays" class="card">
-      <div class="eyebrow">🎂 Дни рождения</div>
-      <h2 style="font-size:1.7rem;"><%= birthdaysCount %></h2>
-      <p style="color:var(--muted);">Ручное добавление, фото + импорт Excel/CSV</p>
-    </a>
-    <a href="/kraj" class="card">
-      <div class="eyebrow">🚨 Кражи · новые</div>
-      <h2 style="font-size:1.7rem;"><%= krajNewCount %></h2>
-      <p style="color:var(--muted);">Непросмотренные сообщения от участников</p>
-    </a>
-    <a href="/admin/news" class="card">
-      <div class="eyebrow">📰 Новости</div>
-      <h2 style="font-size:1.7rem;"><%= newsCount %></h2>
-      <p style="color:var(--muted);">Посты из телеграм-канала: текст, фото, видео</p>
-    </a>
-    <a href="/admin/interactives" class="card">
-      <div class="eyebrow">🗳️ Интерактивы</div>
-      <h2 style="font-size:1.7rem;"><%= pollsCount %></h2>
-      <p style="color:var(--muted);">Голосования для участников семьи</p>
-    </a>
-    <a href="/admin/applications" class="card">
-      <div class="eyebrow">✨ Заявки · новые</div>
-      <h2 style="font-size:1.7rem;"><%= applicationsNewCount %></h2>
-      <p style="color:var(--muted);">Заявки на вступление в семью</p>
-    </a>
-    <a href="/admin/album" class="card">
-      <div class="eyebrow">📸 Альбом</div>
-      <h2 style="font-size:1.7rem;"><%= albumCount %></h2>
-      <p style="color:var(--muted);">Фото и видео семьи</p>
-    </a>
-    <a href="/admin/settings" class="card">
-      <div class="eyebrow">🔗 Настройки</div>
-      <h2 style="font-size:1.7rem;">⚙️</h2>
-      <p style="color:var(--muted);">Ссылки на соцсети в подвале сайта</p>
-    </a>
+    <% if (isAdmin) { %>
+      <a href="/admin/users" class="card">
+        <div class="eyebrow">👤 Аккаунты</div>
+        <h2 style="font-size:1.7rem;"><%= usersCount %></h2>
+        <p style="color:var(--muted);">Создание аккаунтов, роли и доступ к разделам</p>
+      </a>
+    <% } %>
+    <% if (can.includes('birthdays')) { %>
+      <a href="/admin/birthdays" class="card">
+        <div class="eyebrow">🎂 Дни рождения</div>
+        <h2 style="font-size:1.7rem;"><%= birthdaysCount %></h2>
+        <p style="color:var(--muted);">Ручное добавление, фото + импорт Excel/CSV</p>
+      </a>
+    <% } %>
+    <% if (can.includes('kraj')) { %>
+      <a href="/kraj" class="card">
+        <div class="eyebrow">🚨 Кражи · новые</div>
+        <h2 style="font-size:1.7rem;"><%= krajNewCount %></h2>
+        <p style="color:var(--muted);">Непросмотренные сообщения от участников</p>
+      </a>
+    <% } %>
+    <% if (can.includes('news')) { %>
+      <a href="/admin/news" class="card">
+        <div class="eyebrow">📰 Новости</div>
+        <h2 style="font-size:1.7rem;"><%= newsCount %></h2>
+        <p style="color:var(--muted);">Посты из телеграм-канала: текст, фото, видео</p>
+      </a>
+    <% } %>
+    <% if (can.includes('interactives')) { %>
+      <a href="/admin/interactives" class="card">
+        <div class="eyebrow">🗳️ Интерактивы</div>
+        <h2 style="font-size:1.7rem;"><%= pollsCount %></h2>
+        <p style="color:var(--muted);">Голосования для участников семьи</p>
+      </a>
+    <% } %>
+    <% if (can.includes('applications')) { %>
+      <a href="/admin/applications" class="card">
+        <div class="eyebrow">✨ Заявки · новые</div>
+        <h2 style="font-size:1.7rem;"><%= applicationsNewCount %></h2>
+        <p style="color:var(--muted);">Заявки на вступление в семью</p>
+      </a>
+    <% } %>
+    <% if (can.includes('album')) { %>
+      <a href="/admin/album" class="card">
+        <div class="eyebrow">📸 Альбом</div>
+        <h2 style="font-size:1.7rem;"><%= albumCount %></h2>
+        <p style="color:var(--muted);">Фото и видео семьи</p>
+      </a>
+    <% } %>
+    <% if (can.includes('faq')) { %>
+      <a href="/admin/faq" class="card">
+        <div class="eyebrow">❓ FAQ</div>
+        <h2 style="font-size:1.7rem;"><%= faqCount %></h2>
+        <p style="color:var(--muted);">Часто задаваемые вопросы на публичной странице</p>
+      </a>
+    <% } %>
+    <% if (can.includes('questions')) { %>
+      <a href="/admin/questions" class="card">
+        <div class="eyebrow">📮 Обращения · новые</div>
+        <h2 style="font-size:1.7rem;"><%= questionsNewCount %></h2>
+        <p style="color:var(--muted);">Личные вопросы со страницы «Связь с администрацией»</p>
+      </a>
+    <% } %>
+    <% if (isAdmin) { %>
+      <a href="/admin/settings" class="card">
+        <div class="eyebrow">🔗 Настройки</div>
+        <h2 style="font-size:1.7rem;">⚙️</h2>
+        <p style="color:var(--muted);">Ссылки на соцсети в подвале сайта</p>
+      </a>
+    <% } %>
   </div>
 </div>
 

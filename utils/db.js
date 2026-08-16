@@ -33,6 +33,8 @@ function applyDefaultsAndSeed() {
     polls: [],
     applications: [],
     album: [],
+    faq: [],
+    questions: [],
     settings: {
       siteName: 'EXCLUSIVE FAMILY',
       tagline: 'Strength · Loyalty · Honor',
@@ -44,6 +46,8 @@ function applyDefaultsAndSeed() {
   if (!db.get('settings.socialLinks').value()) {
     db.set('settings.socialLinks', []).write();
   }
+
+  seedFaq();
 
   seedAdmin();
   seedBirthdays();
@@ -59,9 +63,38 @@ function seedAdmin() {
       nickname: 'admin',
       passwordHash: hash,
       role: 'admin',
+      roleTitle: 'Глава семьи',
+      contact: '',
+      portals: [],
       createdAt: new Date().toISOString()
     }).write();
     console.log('>>> Создан аккаунт администратора: логин "admin", пароль "admin123" (смените после первого входа)');
+  }
+}
+
+function seedFaq() {
+  const existing = db.get('faq').value();
+  if (existing.length === 0) {
+    db.set('faq', [
+      {
+        id: Date.now(),
+        question: 'Как вступить в семью?',
+        answer: 'Заполните заявку на странице «Вступить» — укажите ник, контакт и немного расскажите о себе. Админ или зам. админа свяжутся с вами.',
+        order: 1
+      },
+      {
+        id: Date.now() + 1,
+        question: 'Кто может создать мне аккаунт на сайте?',
+        answer: 'Аккаунты выдают только администратор и заместители администратора после одобрения заявки на вступление.',
+        order: 2
+      },
+      {
+        id: Date.now() + 2,
+        question: 'Куда писать, если у меня вопрос лично к админу?',
+        answer: 'Откройте раздел «Связь с администрацией» — там список админов и замов с контактами, либо форма личного вопроса.',
+        order: 3
+      }
+    ]).write();
   }
 }
 
