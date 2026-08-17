@@ -51,6 +51,13 @@ router.get('/news', (req, res) => {
   res.render('news', { items });
 });
 
+// Отдельная страница одного поста (можно скинуть прямую ссылку)
+router.get('/news/:id', (req, res) => {
+  const item = db.get('news').find({ id: Number(req.params.id) }).value();
+  if (!item) return res.status(404).render('404');
+  res.render('news-single', { item });
+});
+
 router.get('/minions', (req, res) => {
   const jokes = db.get('minions').value();
   res.render('minions', { jokes });
@@ -91,13 +98,21 @@ router.post('/interactives/:id/vote', requireAuth, (req, res) => {
 
 // ---------- ВСТУПЛЕНИЕ В СЕМЬЮ (без регистрации) ----------
 router.get('/join', (req, res) => {
-  res.render('join', { error: null, success: null });
+  const joinIntro = db.get('settings.joinIntro').value() || '';
+  const joinCriteria = db.get('settings.joinCriteria').value() || [];
+  res.render('join', { error: null, success: null, joinIntro, joinCriteria });
 });
 
 router.post('/join', (req, res) => {
   const { nickname, contact, message } = req.body;
+  const joinIntro = db.get('settings.joinIntro').value() || '';
+  const joinCriteria = db.get('settings.joinCriteria').value() || [];
+
   if (!nickname || !contact) {
-    return res.render('join', { error: 'Укажите ник и контакт (телеграм) для связи.', success: null });
+    return res.render('join', {
+      error: 'Укажите ник и контакт (телеграм) для связи.', success: null,
+      joinIntro, joinCriteria
+    });
   }
   db.get('applications').push({
     id: Date.now(),
@@ -107,7 +122,37 @@ router.post('/join', (req, res) => {
     status: 'new',
     createdAt: new Date().toISOString()
   }).write();
-  res.render('join', { error: null, success: 'Заявка отправлена! Админ свяжется с вами в ближайшее время.' });
+  res.render('join', {
+    error: null, success: 'Заявка отправлена! Админ свяжется с вами в ближайшее время.',
+    joinIntro, joinCriteria
+  });
+});
+
+// ---------- АДМИНИСТРАЦИЯ / КОНТАКТЫ ----------
+router.get('/contacts', (req, res) => {
+  const roleLabels = { admin: 'Администратор', deputy: 'Зам. администратора' };
+  const staff = db.get('users')
+    .filter(u => (u.role === 'admin' || u.role === 'deputy') && u.showOnContacts)
+    .value()
+    .map(u => ({
+      nickname: u.nickname,
+      role: u.role,
+      title: u.publicTitle || roleLabels[u.role],
+      contactUrl: u.contactUrl || null
+    }));
+  res.render('contacts', { staff });
+});
+
+// ---------- FAQ ----------
+router.get('/faq', (req, res) => {
+  const items = db.get('faq').value();
+  res.render('faq', { items });
+});
+
+// ---------- ГАЙД ДЛЯ НОВИЧКОВ ----------
+router.get('/guide', (req, res) => {
+  const guideIntro = db.get('settings.guideIntro').value() || '';
+  res.render('guide', { guideIntro });
 });
 
 module.exports = router;

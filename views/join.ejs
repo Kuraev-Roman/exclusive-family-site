@@ -3,19 +3,19 @@
 <div class="wrap" style="max-width:640px;">
   <div class="eyebrow">✨ Вступление</div>
   <h1 class="gradient-text" style="font-size:2.1rem;">Хочешь в семью EXCLUSIVE?</h1>
-  <p style="color:var(--muted); margin-bottom:24px;">Аккаунт на сайте выдаёт только админ, но заявку на вступление можно оставить прямо сейчас — регистрация не нужна.</p>
+  <p style="color:var(--muted); margin-bottom:24px;"><%= joinIntro %></p>
 
-  <div class="card" style="margin-bottom:26px;">
-    <h2 style="font-size:1.1rem;">📋 Условия и критерии вступления</h2>
-    <ul class="criteria-list" style="margin-top:14px;">
-      <li><span class="icon">⭐</span> Ранг/уровень — от <strong>3 звёзд</strong></li>
-      <li><span class="icon">🔥</span> Активность — от <strong>800 очков</strong> в месяц</li>
-      <li><span class="icon">💰</span> Пожертвование в общий фонд семьи — от <strong>800</strong> при вступлении</li>
-      <li><span class="icon">🤝</span> Уважение к участникам, без конфликтов и токсичности</li>
-      <li><span class="icon">🎤</span> Готовность быть на связи в общем чате/войсе семьи</li>
-    </ul>
-    <p style="color:var(--muted); font-size:.82rem; margin-top:14px;">Условия могут уточняться админом индивидуально — это ориентир, а не жёсткий фильтр.</p>
-  </div>
+  <% if (joinCriteria.length) { %>
+    <div class="card" style="margin-bottom:26px;">
+      <h2 style="font-size:1.1rem;">📋 Условия и критерии вступления</h2>
+      <ul class="criteria-list" style="margin-top:14px;">
+        <% joinCriteria.forEach(function(c) { %>
+          <li><span class="icon"><%= c.icon %></span> <%- c.text %></li>
+        <% }) %>
+      </ul>
+      <p style="color:var(--muted); font-size:.82rem; margin-top:14px;">Условия могут уточняться админом индивидуально — это ориентир, а не жёсткий фильтр.</p>
+    </div>
+  <% } %>
 
   <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
   <% if (success) { %><div class="alert alert-success">🎉 <%= success %></div><% } %>
@@ -37,6 +37,10 @@
       </div>
       <button class="btn btn-fun" type="submit">✨ Отправить заявку</button>
     </form>
+  </div>
+
+  <div class="card" style="margin-top:20px; text-align:center;">
+    <p style="color:var(--muted); font-size:.9rem; margin:0;">Первый раз на сайте? Загляни в <a href="/guide">гайд для новичков</a> или <a href="/faq">FAQ</a>.</p>
   </div>
 </div>
 

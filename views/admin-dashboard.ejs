@@ -3,13 +3,18 @@
 <div class="wrap">
   <div class="eyebrow">⚙️ Панель управления</div>
   <h1 class="gradient-text" style="font-size:2.1rem;">Админ-панель семьи</h1>
+  <% if (!isFullAdmin) { %>
+    <p style="color:var(--muted);">Ты вошёл как зам. администратора — доступны разделы контента, аккаунты и настройки видит только главный админ.</p>
+  <% } %>
 
   <div class="grid grid-3" style="margin-top:24px;">
+    <% if (isFullAdmin) { %>
     <a href="/admin/users" class="card">
       <div class="eyebrow">👤 Аккаунты</div>
       <h2 style="font-size:1.7rem;"><%= usersCount %></h2>
       <p style="color:var(--muted);">Создание и управление аккаунтами участников</p>
     </a>
+    <% } %>
     <a href="/admin/birthdays" class="card">
       <div class="eyebrow">🎂 Дни рождения</div>
       <h2 style="font-size:1.7rem;"><%= birthdaysCount %></h2>
@@ -40,11 +45,18 @@
       <h2 style="font-size:1.7rem;"><%= albumCount %></h2>
       <p style="color:var(--muted);">Фото и видео семьи</p>
     </a>
+    <a href="/admin/faq" class="card">
+      <div class="eyebrow">❓ FAQ</div>
+      <h2 style="font-size:1.7rem;"><%= faqCount %></h2>
+      <p style="color:var(--muted);">Частые вопросы новичков</p>
+    </a>
+    <% if (isFullAdmin) { %>
     <a href="/admin/settings" class="card">
       <div class="eyebrow">🔗 Настройки</div>
       <h2 style="font-size:1.7rem;">⚙️</h2>
-      <p style="color:var(--muted);">Ссылки на соцсети в подвале сайта</p>
+      <p style="color:var(--muted);">Соцсети, условия вступления, гайд, контакты админов</p>
     </a>
+    <% } %>
   </div>
 </div>
 

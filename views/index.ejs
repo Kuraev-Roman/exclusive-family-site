@@ -90,6 +90,7 @@
                 <% n.images.slice(0,3).forEach(function(img) { %><img src="<%= img %>" alt="фото новости"><% }) %>
               </div>
             <% } %>
+            <a href="/news/<%= n.id %>" class="btn btn-sm" style="margin-top:10px;">Открыть →</a>
           </div>
         <% }) %>
       <% } %>

@@ -2,15 +2,16 @@
 
 <div class="wrap">
   <div class="eyebrow">⚙️ Админ</div>
-  <h1 class="gradient-text" style="font-size:2rem;">Настройки — соцсети</h1>
-  <p style="color:var(--muted); margin-bottom:24px;">Ссылки появятся внизу каждой страницы сайта (в подвале).</p>
+  <h1 class="gradient-text" style="font-size:2rem;">Настройки сайта</h1>
+  <p style="color:var(--muted); margin-bottom:24px;">Соцсети в подвале, текст и условия страницы «Вступить», текст гайда для новичков. Контакты конкретных админов/замов настраиваются в разделе «Аккаунты».</p>
 
   <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
   <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
 
-  <div class="grid grid-2">
+  <h2 style="font-size:1.2rem; margin-bottom:14px;">🔗 Ссылки на соцсети (подвал сайта)</h2>
+  <div class="grid grid-2" style="margin-bottom:36px;">
     <div class="card">
-      <h2 style="font-size:1.1rem;">Добавить ссылку</h2>
+      <h3 style="font-size:1rem;">Добавить ссылку</h3>
       <form class="stack" method="POST" action="/admin/settings/social/add">
         <div class="field">
           <label>Название</label>
@@ -25,7 +26,7 @@
     </div>
 
     <div class="card">
-      <h2 style="font-size:1.1rem;">Текущие ссылки (<%= socialLinks.length %>)</h2>
+      <h3 style="font-size:1rem;">Текущие ссылки (<%= socialLinks.length %>)</h3>
       <% if (socialLinks.length === 0) { %>
         <p style="color:var(--muted); font-size:.85rem;">Пока ничего не добавлено.</p>
       <% } %>
@@ -38,6 +39,47 @@
         </div>
       <% }) %>
     </div>
+  </div>
+
+  <h2 style="font-size:1.2rem; margin-bottom:14px;">✨ Страница «Вступить в семью»</h2>
+  <div class="grid grid-2" style="margin-bottom:36px;">
+    <div class="card">
+      <h3 style="font-size:1rem;">Вступительный текст</h3>
+      <form class="stack" method="POST" action="/admin/settings/join-intro">
+        <div class="field">
+          <textarea name="joinIntro" rows="4"><%= joinIntro %></textarea>
+        </div>
+        <button class="btn btn-solid" type="submit">Сохранить текст</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:1rem;">Условия вступления (<%= joinCriteria.length %>)</h3>
+      <% joinCriteria.forEach(function(c) { %>
+        <div class="upcoming-pill" style="margin-bottom:8px;">
+          <span><%= c.icon %> <%- c.text %></span>
+          <form action="/admin/settings/join-criteria/<%= c.id %>/delete" method="POST" class="inline-form" onsubmit="return confirm('Удалить условие?');">
+            <button class="btn btn-sm btn-danger" type="submit">✕</button>
+          </form>
+        </div>
+      <% }) %>
+      <form method="POST" action="/admin/settings/join-criteria/add" style="display:flex; gap:8px; margin-top:14px;">
+        <input type="text" name="icon" placeholder="⭐" style="width:56px; padding:8px; background:var(--black); border:1px solid rgba(212,175,55,.25); border-radius:4px; color:var(--white); text-align:center;">
+        <input type="text" name="text" placeholder="Текст условия (можно с <strong>)" style="flex:1; min-width:0; padding:8px 10px; background:var(--black); border:1px solid rgba(212,175,55,.25); border-radius:4px; color:var(--white);">
+        <button class="btn btn-sm btn-solid" type="submit">Добавить</button>
+      </form>
+    </div>
+  </div>
+
+  <h2 style="font-size:1.2rem; margin-bottom:14px;">🧭 Гайд для новичков</h2>
+  <div class="card" style="max-width:640px;">
+    <form class="stack" method="POST" action="/admin/settings/guide-intro">
+      <div class="field">
+        <label>Вводный текст на странице /guide</label>
+        <textarea name="guideIntro" rows="4"><%= guideIntro %></textarea>
+      </div>
+      <button class="btn btn-solid" type="submit">Сохранить</button>
+    </form>
   </div>
 </div>
 

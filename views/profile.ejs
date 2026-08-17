@@ -3,8 +3,8 @@
 <div class="wrap" style="max-width:460px;">
   <div class="eyebrow">👤 Профиль</div>
   <h1 class="gradient-text" style="font-size:1.9rem;"><%= currentUser.nickname %></h1>
-  <span class="badge <%= currentUser.role === 'admin' ? 'badge-admin' : 'badge-member' %>">
-    <%= currentUser.role === 'admin' ? 'Администратор' : 'Участник семьи' %>
+  <span class="badge <%= currentUser.role === 'admin' ? 'badge-admin' : (currentUser.role === 'deputy' ? 'badge-deputy' : 'badge-member') %>">
+    <%= currentUser.role === 'admin' ? 'Администратор' : (currentUser.role === 'deputy' ? 'Зам. администратора' : 'Участник семьи') %>
   </span>
 
   <% if (error) { %><div class="alert alert-error" style="margin-top:20px;"><%= error %></div><% } %>

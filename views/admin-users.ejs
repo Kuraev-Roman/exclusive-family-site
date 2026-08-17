@@ -3,61 +3,91 @@
 <div class="wrap">
   <div class="eyebrow">⚙️ Админ</div>
   <h1 class="gradient-text" style="font-size:2rem;">Аккаунты участников</h1>
-  <p style="color:var(--muted); margin-bottom:24px;">Только администратор может создавать новые аккаунты. Участник входит под своим ником и может сам сменить пароль в профиле.</p>
+  <p style="color:var(--muted); margin-bottom:24px;">Только полный администратор может создавать аккаунты и назначать роли. Участник входит под своим ником и может сам сменить пароль и фото в профиле.</p>
 
   <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
   <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
 
-  <div class="grid grid-2">
-    <div class="card">
-      <h2 style="font-size:1.1rem;">Новый аккаунт</h2>
-      <form class="stack" method="POST" action="/admin/users/create">
-        <div class="field">
-          <label>Ник</label>
-          <input type="text" name="nickname" required>
-        </div>
-        <div class="field">
-          <label>Пароль</label>
-          <input type="text" name="password" required minlength="4">
-        </div>
-        <div class="field">
-          <label>Роль</label>
-          <select name="role">
-            <option value="member">Участник</option>
-            <option value="admin">Администратор</option>
-          </select>
-        </div>
-        <button class="btn btn-solid" type="submit">Создать</button>
-      </form>
-    </div>
+  <div class="card" style="margin-bottom:30px; max-width:480px;">
+    <h2 style="font-size:1.1rem;">Новый аккаунт</h2>
+    <form class="stack" method="POST" action="/admin/users/create">
+      <div class="field">
+        <label>Ник</label>
+        <input type="text" name="nickname" required>
+      </div>
+      <div class="field">
+        <label>Пароль</label>
+        <input type="text" name="password" required minlength="4">
+      </div>
+      <div class="field">
+        <label>Роль</label>
+        <select name="role">
+          <option value="member">Участник</option>
+          <option value="deputy">Зам. администратора</option>
+          <option value="admin">Администратор</option>
+        </select>
+      </div>
+      <button class="btn btn-solid" type="submit">Создать</button>
+    </form>
+  </div>
 
-    <div class="card">
-      <h2 style="font-size:1.1rem;">Список (<%= users.length %>)</h2>
-      <table class="bday-table">
-        <thead><tr><th>Ник</th><th>Роль</th><th></th></tr></thead>
-        <tbody>
-        <% users.forEach(function(u) { %>
-          <tr>
-            <td data-label="Ник"><%= u.nickname %></td>
-            <td data-label="Роль"><span class="badge <%= u.role === 'admin' ? 'badge-admin' : 'badge-member' %>"><%= u.role === 'admin' ? 'Админ' : 'Участник' %></span></td>
-            <td>
-              <div class="row-actions" style="flex-direction:column; align-items:stretch;">
-                <form action="/admin/users/<%= u.id %>/reset-password" method="POST" class="inline-form" style="display:flex; gap:6px;">
-                  <input type="text" name="newPassword" placeholder="новый пароль" style="flex:1; min-width:0; padding:5px 8px; background:var(--black); border:1px solid rgba(212,175,55,.25); border-radius:4px; color:var(--white); font-size:.75rem;">
-                  <button class="btn btn-sm" type="submit">Сбросить</button>
-                </form>
-                <% if (u.nickname !== 'admin') { %>
-                <form action="/admin/users/<%= u.id %>/delete" method="POST" class="inline-form" onsubmit="return confirm('Удалить аккаунт <%= u.nickname %>?');">
-                  <button class="btn btn-sm btn-danger" type="submit" style="width:100%;">Удалить</button>
-                </form>
-                <% } %>
-              </div>
-            </td>
-          </tr>
-        <% }) %>
-        </tbody>
-      </table>
-    </div>
+  <h2 style="font-size:1.2rem; margin-bottom:16px;">Все аккаунты (<%= users.length %>)</h2>
+  <div class="grid grid-2">
+    <% users.forEach(function(u) { %>
+      <div class="card">
+        <div class="row-actions" style="justify-content:space-between; margin-bottom:12px;">
+          <strong style="font-size:1.05rem;"><%= u.nickname %></strong>
+          <span class="badge <%= u.role === 'admin' ? 'badge-admin' : (u.role === 'deputy' ? 'badge-deputy' : 'badge-member') %>">
+            <%= u.role === 'admin' ? 'Админ' : (u.role === 'deputy' ? 'Зам. админа' : 'Участник') %>
+          </span>
+        </div>
+
+        <% if (u.nickname !== 'admin') { %>
+        <form action="/admin/users/<%= u.id %>/role" method="POST" style="display:flex; gap:6px; margin-bottom:10px;">
+          <select name="role" style="flex:1; padding:6px 8px; background:var(--black); border:1px solid rgba(212,175,55,.25); border-radius:4px; color:var(--white); font-size:.8rem;">
+            <option value="member" <%= u.role === 'member' ? 'selected' : '' %>>Участник</option>
+            <option value="deputy" <%= u.role === 'deputy' ? 'selected' : '' %>>Зам. администратора</option>
+            <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Администратор</option>
+          </select>
+          <button class="btn btn-sm" type="submit">Роль</button>
+        </form>
+        <% } else { %>
+        <p style="color:var(--muted); font-size:.78rem; margin-bottom:10px;">Главный администратор — роль не меняется.</p>
+        <% } %>
+
+        <form action="/admin/users/<%= u.id %>/reset-password" method="POST" style="display:flex; gap:6px; margin-bottom:10px;">
+          <input type="text" name="newPassword" placeholder="новый пароль" style="flex:1; min-width:0; padding:6px 8px; background:var(--black); border:1px solid rgba(212,175,55,.25); border-radius:4px; color:var(--white); font-size:.78rem;">
+          <button class="btn btn-sm" type="submit">Сбросить пароль</button>
+        </form>
+
+        <% if (u.role === 'admin' || u.role === 'deputy') { %>
+        <details style="margin-bottom:10px;">
+          <summary style="cursor:pointer; color:var(--gold-light); font-size:.85rem; font-weight:600;">📇 Контакт для страницы «Администрация»</summary>
+          <form action="/admin/users/<%= u.id %>/contact" method="POST" class="stack" style="margin-top:10px; max-width:100%;">
+            <div class="field">
+              <label>Название роли (например «Глава семьи»)</label>
+              <input type="text" name="publicTitle" value="<%= u.publicTitle || '' %>" placeholder="Глава семьи / Модератор">
+            </div>
+            <div class="field">
+              <label>Ссылка для связи (телеграм/соцсеть)</label>
+              <input type="text" name="contactUrl" value="<%= u.contactUrl || '' %>" placeholder="https://t.me/username">
+            </div>
+            <div class="field" style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" name="showOnContacts" id="show-<%= u.id %>" <%= u.showOnContacts ? 'checked' : '' %> style="width:auto;">
+              <label for="show-<%= u.id %>" style="margin:0;">Показывать на странице «Администрация»</label>
+            </div>
+            <button class="btn btn-sm btn-solid" type="submit">Сохранить контакт</button>
+          </form>
+        </details>
+        <% } %>
+
+        <% if (u.nickname !== 'admin') { %>
+        <form action="/admin/users/<%= u.id %>/delete" method="POST" onsubmit="return confirm('Удалить аккаунт <%= u.nickname %>?');">
+          <button class="btn btn-sm btn-danger" type="submit" style="width:100%;">Удалить аккаунт</button>
+        </form>
+        <% } %>
+      </div>
+    <% }) %>
   </div>
 </div>
 

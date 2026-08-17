@@ -1,0 +1,48 @@
+<%- include('partials/header') %>
+
+<div class="wrap" style="max-width:820px;">
+  <div class="eyebrow">🧭 Раздел</div>
+  <h1 class="gradient-text" style="font-size:2.1rem;">Гайд для новичков</h1>
+  <p style="color:var(--muted); margin-bottom:30px;"><%= guideIntro %></p>
+
+  <div class="grid grid-2">
+    <a href="/" class="card">
+      <div class="eyebrow">🏠 Главная</div>
+      <p style="margin-top:8px;">Кто сегодня празднует день рождения, активное голосование и последние новости — всё в одном месте.</p>
+    </a>
+    <a href="/news" class="card">
+      <div class="eyebrow">📰 Новости</div>
+      <p style="margin-top:8px;">Лента с постами из телеграм-канала семьи: текст, фото, видео. У каждого поста своя страница — можно скинуть ссылку.</p>
+    </a>
+    <a href="/album" class="card">
+      <div class="eyebrow">📸 Альбом</div>
+      <p style="margin-top:8px;">Общие фото и видео семьи. Клик по фото открывает его в полный размер.</p>
+    </a>
+    <a href="/interactives" class="card">
+      <div class="eyebrow">🗳️ Интерактивы</div>
+      <p style="margin-top:8px;">Голосования за активности — результаты видно всем, голосовать может любой вошедший участник.</p>
+    </a>
+    <a href="/join" class="card">
+      <div class="eyebrow">✨ Вступить</div>
+      <p style="margin-top:8px;">Условия вступления и форма заявки — регистрироваться самому не нужно, аккаунт выдаёт администрация.</p>
+    </a>
+    <a href="/contacts" class="card">
+      <div class="eyebrow">📇 Администрация</div>
+      <p style="margin-top:8px;">Список админов и замов с личными контактами — если есть личный вопрос, пиши напрямую.</p>
+    </a>
+    <a href="/faq" class="card">
+      <div class="eyebrow">❓ FAQ</div>
+      <p style="margin-top:8px;">Ответы на частые вопросы — как войти, что делать при забытом пароле и т.д.</p>
+    </a>
+    <a href="/profile" class="card">
+      <div class="eyebrow">👤 Профиль</div>
+      <p style="margin-top:8px;">После входа здесь можно поменять пароль и загрузить своё фото (оно же появится в днях рождения).</p>
+    </a>
+  </div>
+
+  <div class="card" style="margin-top:30px; text-align:center;">
+    <p style="color:var(--muted); margin:0;">Остались вопросы? Загляни в <a href="/faq">FAQ</a> или напиши в <a href="/contacts">администрацию</a>.</p>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,44 @@
+<%- include('partials/header') %>
+
+<div class="wrap">
+  <div class="eyebrow">⚙️ Админ</div>
+  <h1 class="gradient-text" style="font-size:2rem;">FAQ — управление</h1>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+
+  <div class="card" style="margin-bottom:30px; max-width:600px;">
+    <h2 style="font-size:1.1rem;">Добавить вопрос</h2>
+    <form class="stack" method="POST" action="/admin/faq/add">
+      <div class="field">
+        <label>Вопрос</label>
+        <input type="text" name="question" required placeholder="Как вступить в семью?">
+      </div>
+      <div class="field">
+        <label>Ответ</label>
+        <textarea name="answer" required rows="3" placeholder="Заполни заявку в разделе «Вступить»..."></textarea>
+      </div>
+      <button class="btn btn-solid" type="submit">Добавить</button>
+    </form>
+  </div>
+
+  <h2 style="font-size:1.2rem; margin-bottom:16px;">Все вопросы (<%= items.length %>)</h2>
+  <% items.forEach(function(f) { %>
+    <div class="card" style="margin-bottom:12px;">
+      <div class="row-actions" style="justify-content:space-between; align-items:flex-start;">
+        <div>
+          <strong><%= f.question %></strong>
+          <p style="color:var(--muted); margin-top:6px;"><%= f.answer %></p>
+        </div>
+        <form action="/admin/faq/<%= f.id %>/delete" method="POST" onsubmit="return confirm('Удалить вопрос?');">
+          <button class="btn btn-sm btn-danger" type="submit">✕</button>
+        </form>
+      </div>
+    </div>
+  <% }) %>
+  <% if (items.length === 0) { %>
+    <div class="card empty-state"><span class="big-emoji">❓</span>Вопросов ещё нет.</div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

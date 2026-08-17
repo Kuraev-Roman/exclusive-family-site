@@ -6,7 +6,7 @@
   <p style="color:var(--muted); margin-bottom:30px;">Сюда админ переносит посты из телеграм-канала: текст, фото и видео.</p>
 
   <% if (items.length === 0) { %>
-    <div class="card empty-state">Пока нет ни одного поста.</div>
+    <div class="card empty-state"><span class="big-emoji">📭</span>Пока нет ни одного поста.</div>
   <% } %>
 
   <% items.forEach(function(n) { %>
@@ -15,14 +15,21 @@
       <% if (n.text) { %><div class="text"><%= n.text %></div><% } %>
       <% if (n.images && n.images.length) { %>
         <div class="news-images">
-          <% n.images.forEach(function(img) { %><img src="<%= img %>" alt="фото новости"><% }) %>
+          <% n.images.forEach(function(img) { %>
+            <img src="<%= img %>" alt="фото новости" data-lightbox="<%= img %>">
+          <% }) %>
         </div>
       <% } %>
       <% if (n.videoUrl) { %>
-        <div class="video-slot">
-          🎬 Видео: <a href="<%= n.videoUrl %>" target="_blank" rel="noopener" style="margin-left:6px;"><%= n.videoUrl %></a>
-        </div>
+        <% if (n.videoUrl.startsWith('/uploads/')) { %>
+          <video src="<%= n.videoUrl %>" controls preload="metadata" style="width:100%; border-radius:8px; margin-top:12px;"></video>
+        <% } else { %>
+          <div class="video-slot">
+            🎬 Видео: <a href="<%= n.videoUrl %>" target="_blank" rel="noopener" style="margin-left:6px;"><%= n.videoUrl %></a>
+          </div>
+        <% } %>
       <% } %>
+      <a href="/news/<%= n.id %>" class="btn btn-sm" style="margin-top:14px;">Открыть пост →</a>
     </div>
   <% }) %>
 </div>

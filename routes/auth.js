@@ -71,18 +71,19 @@ router.post('/profile/password', requireAuth, (req, res) => {
   const user = db.get('users').find({ id: req.session.user.id }).value();
 
   if (!user || !bcrypt.compareSync(currentPassword || '', user.passwordHash)) {
-    return res.render('profile', { error: 'Текущий пароль неверный.', success: null });
+    return res.render('profile', { error: 'Текущий пароль неверный.', success: null, user });
   }
   if (!newPassword || newPassword.length < 4) {
-    return res.render('profile', { error: 'Новый пароль должен быть от 4 символов.', success: null });
+    return res.render('profile', { error: 'Новый пароль должен быть от 4 символов.', success: null, user });
   }
   if (newPassword !== newPasswordRepeat) {
-    return res.render('profile', { error: 'Пароли не совпадают.', success: null });
+    return res.render('profile', { error: 'Пароли не совпадают.', success: null, user });
   }
 
   const hash = bcrypt.hashSync(newPassword, 10);
   db.get('users').find({ id: user.id }).assign({ passwordHash: hash }).write();
-  res.render('profile', { error: null, success: 'Пароль успешно изменён.' });
+  const updatedUser = db.get('users').find({ id: user.id }).value();
+  res.render('profile', { error: null, success: 'Пароль успешно изменён.', user: updatedUser });
 });
 
 module.exports = router;

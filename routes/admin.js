@@ -7,9 +7,10 @@ const bcrypt = require('bcryptjs');
 const XLSX = require('xlsx');
 const { parse } = require('csv-parse/sync');
 const db = require('../utils/db');
-const { requireAdmin } = require('../utils/middleware');
+const { requireAdmin, requireStaff } = require('../utils/middleware');
 
-router.use(requireAdmin);
+// Базовый доступ к /admin/* — админ или зам.админа
+router.use(requireStaff);
 
 // ---------- ГЛАВНАЯ АДМИН-ПАНЕЛЬ ----------
 router.get('/', (req, res) => {
@@ -20,16 +21,18 @@ router.get('/', (req, res) => {
     newsCount: db.get('news').size().value(),
     pollsCount: db.get('polls').size().value(),
     applicationsNewCount: db.get('applications').filter({ status: 'new' }).size().value(),
-    albumCount: db.get('album').size().value()
+    albumCount: db.get('album').size().value(),
+    faqCount: db.get('faq').size().value(),
+    isFullAdmin: req.session.user.role === 'admin'
   });
 });
 
-// ---------- ПОЛЬЗОВАТЕЛИ ----------
-router.get('/users', (req, res) => {
+// ---------- ПОЛЬЗОВАТЕЛИ (только полный админ) ----------
+router.get('/users', requireAdmin, (req, res) => {
   res.render('admin-users', { users: db.get('users').value(), error: null, success: null });
 });
 
-router.post('/users/create', (req, res) => {
+router.post('/users/create', requireAdmin, (req, res) => {
   const { nickname, password, role } = req.body;
   const render = (error, success) =>
     res.render('admin-users', { users: db.get('users').value(), error, success });
@@ -37,18 +40,19 @@ router.post('/users/create', (req, res) => {
   if (!nickname || !password) return render('Заполните ник и пароль.', null);
   if (db.get('users').find({ nickname }).value()) return render('Такой ник уже занят.', null);
 
+  const allowedRoles = ['member', 'deputy', 'admin'];
   db.get('users').push({
     id: Date.now(),
     nickname: nickname.trim(),
     passwordHash: bcrypt.hashSync(password, 10),
-    role: role === 'admin' ? 'admin' : 'member',
+    role: allowedRoles.includes(role) ? role : 'member',
     createdAt: new Date().toISOString()
   }).write();
 
   render(null, `Аккаунт "${nickname}" создан.`);
 });
 
-router.post('/users/:id/delete', (req, res) => {
+router.post('/users/:id/delete', requireAdmin, (req, res) => {
   const id = Number(req.params.id);
   const user = db.get('users').find({ id }).value();
   if (user && user.nickname === 'admin') {
@@ -62,7 +66,7 @@ router.post('/users/:id/delete', (req, res) => {
   res.redirect('/admin/users');
 });
 
-router.post('/users/:id/reset-password', (req, res) => {
+router.post('/users/:id/reset-password', requireAdmin, (req, res) => {
   const id = Number(req.params.id);
   const { newPassword } = req.body;
   if (!newPassword || newPassword.length < 4) {
@@ -77,6 +81,53 @@ router.post('/users/:id/reset-password', (req, res) => {
     users: db.get('users').value(),
     error: null,
     success: 'Пароль пользователя сброшен.'
+  });
+});
+
+router.post('/users/:id/role', requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  const { role } = req.body;
+  const user = db.get('users').find({ id }).value();
+  const allowedRoles = ['member', 'deputy', 'admin'];
+
+  if (user && user.nickname === 'admin') {
+    return res.render('admin-users', {
+      users: db.get('users').value(),
+      error: 'Нельзя менять роль главного администратора.',
+      success: null
+    });
+  }
+  if (!allowedRoles.includes(role)) {
+    return res.render('admin-users', {
+      users: db.get('users').value(),
+      error: 'Некорректная роль.',
+      success: null
+    });
+  }
+
+  db.get('users').find({ id }).assign({ role }).write();
+  res.render('admin-users', {
+    users: db.get('users').value(),
+    error: null,
+    success: 'Роль обновлена.'
+  });
+});
+
+// Публичная карточка контакта (для страницы "Администрация") — только полный админ
+router.post('/users/:id/contact', requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  const { publicTitle, contactUrl, showOnContacts } = req.body;
+
+  db.get('users').find({ id }).assign({
+    publicTitle: (publicTitle || '').trim().slice(0, 60),
+    contactUrl: (contactUrl || '').trim(),
+    showOnContacts: showOnContacts === 'on'
+  }).write();
+
+  res.render('admin-users', {
+    users: db.get('users').value(),
+    error: null,
+    success: 'Контактные данные обновлены.'
   });
 });
 
@@ -369,22 +420,30 @@ router.post('/album/:id/delete', (req, res) => {
   res.redirect('/admin/album');
 });
 
-// ---------- НАСТРОЙКИ: ССЫЛКИ НА СОЦСЕТИ ----------
-router.get('/settings', (req, res) => {
+// ---------- НАСТРОЙКИ: ССЫЛКИ НА СОЦСЕТИ (только полный админ) ----------
+router.get('/settings', requireAdmin, (req, res) => {
   res.render('admin-settings', {
     socialLinks: db.get('settings.socialLinks').value() || [],
+    joinIntro: db.get('settings.joinIntro').value() || '',
+    joinCriteria: db.get('settings.joinCriteria').value() || [],
+    guideIntro: db.get('settings.guideIntro').value() || '',
     error: null, success: null
   });
 });
 
-router.post('/settings/social/add', (req, res) => {
-  const { label, url } = req.body;
-  const render = (error, success) =>
-    res.render('admin-settings', {
-      socialLinks: db.get('settings.socialLinks').value() || [], error, success
-    });
+function renderSettings(req, res, error, success) {
+  res.render('admin-settings', {
+    socialLinks: db.get('settings.socialLinks').value() || [],
+    joinIntro: db.get('settings.joinIntro').value() || '',
+    joinCriteria: db.get('settings.joinCriteria').value() || [],
+    guideIntro: db.get('settings.guideIntro').value() || '',
+    error, success
+  });
+}
 
-  if (!label || !url) return render('Укажите название и ссылку.', null);
+router.post('/settings/social/add', requireAdmin, (req, res) => {
+  const { label, url } = req.body;
+  if (!label || !url) return renderSettings(req, res, 'Укажите название и ссылку.', null);
 
   db.get('settings.socialLinks').push({
     id: Date.now(),
@@ -392,12 +451,71 @@ router.post('/settings/social/add', (req, res) => {
     url: url.trim()
   }).write();
 
-  render(null, 'Ссылка добавлена.');
+  renderSettings(req, res, null, 'Ссылка добавлена.');
 });
 
-router.post('/settings/social/:id/delete', (req, res) => {
+router.post('/settings/social/:id/delete', requireAdmin, (req, res) => {
   db.get('settings.socialLinks').remove({ id: Number(req.params.id) }).write();
   res.redirect('/admin/settings');
+});
+
+// Условия вступления (текст на странице /join)
+router.post('/settings/join-intro', requireAdmin, (req, res) => {
+  db.set('settings.joinIntro', (req.body.joinIntro || '').trim()).write();
+  renderSettings(req, res, null, 'Текст обновлён.');
+});
+
+router.post('/settings/join-criteria/add', requireAdmin, (req, res) => {
+  const { icon, text } = req.body;
+  if (!text) return renderSettings(req, res, 'Укажите текст условия.', null);
+
+  db.get('settings.joinCriteria').push({
+    id: Date.now(),
+    icon: (icon || '✅').trim(),
+    text: text.trim()
+  }).write();
+
+  renderSettings(req, res, null, 'Условие добавлено.');
+});
+
+router.post('/settings/join-criteria/:id/delete', requireAdmin, (req, res) => {
+  db.get('settings.joinCriteria').remove({ id: Number(req.params.id) }).write();
+  res.redirect('/admin/settings');
+});
+
+// Текст гайда для новичков
+router.post('/settings/guide-intro', requireAdmin, (req, res) => {
+  db.set('settings.guideIntro', (req.body.guideIntro || '').trim()).write();
+  renderSettings(req, res, null, 'Текст гайда обновлён.');
+});
+
+// ---------- FAQ (админ или зам.админа) ----------
+router.get('/faq', (req, res) => {
+  res.render('admin-faq', {
+    items: db.get('faq').value(),
+    error: null, success: null
+  });
+});
+
+router.post('/faq/add', (req, res) => {
+  const { question, answer } = req.body;
+  const render = (error, success) =>
+    res.render('admin-faq', { items: db.get('faq').value(), error, success });
+
+  if (!question || !answer) return render('Заполните вопрос и ответ.', null);
+
+  db.get('faq').push({
+    id: Date.now(),
+    question: question.trim(),
+    answer: answer.trim()
+  }).write();
+
+  render(null, 'Вопрос добавлен.');
+});
+
+router.post('/faq/:id/delete', (req, res) => {
+  db.get('faq').remove({ id: Number(req.params.id) }).write();
+  res.redirect('/admin/faq');
 });
 
 module.exports = router;

@@ -15,7 +15,7 @@
             <video src="<%= it.path %>" controls preload="metadata"></video>
             <span class="video-badge">🎬 видео</span>
           <% } else { %>
-            <img src="<%= it.path %>" alt="<%= it.caption || 'фото альбома' %>" loading="lazy">
+            <img src="<%= it.path %>" alt="<%= it.caption || 'фото альбома' %>" loading="lazy" data-lightbox="<%= it.path %>">
           <% } %>
           <% if (it.caption) { %><div class="caption"><%= it.caption %></div><% } %>
         </div>

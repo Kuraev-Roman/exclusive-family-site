@@ -33,21 +33,41 @@ function applyDefaultsAndSeed() {
     polls: [],
     applications: [],
     album: [],
+    faq: [],
     settings: {
       siteName: 'EXCLUSIVE FAMILY',
       tagline: 'Strength · Loyalty · Honor',
       socialLinks: [],
-      telegramOffset: 0
+      telegramOffset: 0,
+      joinIntro: 'Аккаунт на сайте выдаёт только админ, но заявку на вступление можно оставить прямо сейчас — регистрация не нужна.',
+      joinCriteria: [
+        { id: 1, icon: '⭐', text: 'Ранг/уровень — от <strong>3 звёзд</strong>' },
+        { id: 2, icon: '🔥', text: 'Активность — от <strong>800 очков</strong> в месяц' },
+        { id: 3, icon: '💰', text: 'Пожертвование в общий фонд семьи — от <strong>800</strong> при вступлении' },
+        { id: 4, icon: '🤝', text: 'Уважение к участникам, без конфликтов и токсичности' },
+        { id: 5, icon: '🎤', text: 'Готовность быть на связи в общем чате/войсе семьи' }
+      ],
+      guideIntro: 'Коротко о том, что где искать на сайте семьи.'
     }
   }).write();
 
   if (!db.get('settings.socialLinks').value()) {
     db.set('settings.socialLinks', []).write();
   }
+  if (!db.get('settings.joinCriteria').value()) {
+    db.set('settings.joinCriteria', []).write();
+  }
+  if (!db.get('settings.joinIntro').value()) {
+    db.set('settings.joinIntro', 'Аккаунт на сайте выдаёт только админ, но заявку на вступление можно оставить прямо сейчас — регистрация не нужна.').write();
+  }
+  if (!db.get('settings.guideIntro').value()) {
+    db.set('settings.guideIntro', 'Коротко о том, что где искать на сайте семьи.').write();
+  }
 
   seedAdmin();
   seedBirthdays();
   seedMinions();
+  seedFaq();
 }
 
 function seedAdmin() {
@@ -97,7 +117,33 @@ function seedMinions() {
   }
 }
 
-// ---------- Режим Postgres (Neon) ----------
+function seedFaq() {
+  const existing = db.get('faq').value();
+  if (existing.length === 0) {
+    db.set('faq', [
+      {
+        id: 1,
+        question: 'Как вступить в семью?',
+        answer: 'Заполни заявку в разделе «Вступить» — там же указаны условия. Админ свяжется с тобой в Telegram.'
+      },
+      {
+        id: 2,
+        question: 'Забыл(а) пароль, что делать?',
+        answer: 'Напиши админу или заму — их контакты есть в разделе «Администрация». Пароль сбросят вручную.'
+      },
+      {
+        id: 3,
+        question: 'Как отправить сообщение в «Кражи»?',
+        answer: 'Раздел доступен только вошедшим в аккаунт участникам — войди под своим ником и прикрепи скриншот с комментарием.'
+      },
+      {
+        id: 4,
+        question: 'Можно ли самому зарегистрироваться на сайте?',
+        answer: 'Нет, аккаунты создаёт только админ или зам — это защита от посторонних. Оставь заявку в разделе «Вступить».'
+      }
+    ]).write();
+  }
+}
 
 let ready;
 

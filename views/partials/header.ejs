@@ -29,13 +29,16 @@
         <a href="/news">📰 Новости</a>
         <a href="/album">📸 Альбом</a>
         <a href="/interactives">🗳️ Интерактивы</a>
+        <a href="/guide">🧭 Гайд</a>
+        <a href="/faq">❓ FAQ</a>
+        <a href="/contacts">📇 Администрация</a>
         <% if (currentUser) { %>
           <a href="/kraj/send">🚨 Кражи</a>
         <% } %>
         <% if (!currentUser) { %>
           <a href="/join" class="highlight">✨ Вступить</a>
         <% } %>
-        <% if (currentUser && currentUser.role === 'admin') { %>
+        <% if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'deputy')) { %>
           <a href="/birthdays">🎂 Дни рождения</a>
           <a href="/admin">⚙️ Админ-панель</a>
         <% } %>
